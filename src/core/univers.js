@@ -15,7 +15,7 @@
    chaque manifeste.
    ========================================================================= */
 
-export const UNIVERS = ['pompiers', 'chateau', 'dinosaures', 'mer', 'louveteaux'];
+export const UNIVERS = ['pompiers', 'police', 'chateau', 'dinosaures', 'mer', 'louveteaux'];
 
 export const AMBIANCES = [
   { id: 'nuit', nom: 'Nuit', description: 'Fonds profonds, couleurs vives. Doux le soir.' },
