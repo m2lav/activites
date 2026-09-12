@@ -1,9 +1,9 @@
 /* =========================================================================
    Choix du profil.
 
-   Version du lot 1 : les trois enfants, l'univers préféré appliqué au tap,
-   et le bouton silence global. Le choix de la durée (sablier) viendra
-   s'intercaler ici au lot 2.
+   Point de départ de toute séance, et seule porte vers l'espace parent —
+   celle-ci s'ouvre par appui long sur la roue dentée, pour qu'un enfant ne
+   tombe pas dessus en explorant.
    ========================================================================= */
 
 import { el } from '../ui/dom.js';
@@ -11,11 +11,14 @@ import * as store from '../core/store.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
 import * as univers from '../core/univers.js';
+import { boutonSilence, appuiLong } from '../ui/controles.js';
+import { vider as viderBandeau } from '../ui/bandeau.js';
 import { aller } from '../core/router.js';
 
 export async function creer() {
-  const profils = await store.profils();
+  viderBandeau();
 
+  const profils = await store.profils();
   const cartes = profils.map((p) => carteProfil(p));
 
   const grille = el('div', {
@@ -29,16 +32,25 @@ export async function creer() {
 
   const titre = el('h1', { class: 'titre', style: { textAlign: 'center' } }, 'Qui joue ?');
 
+  const roue = el('button', {
+    type: 'button', class: 'bouton',
+    'aria-label': 'Espace parent (appui long)',
+    style: { width: 'var(--touche-min)', padding: '0', fontSize: '24px', opacity: '.55' }
+  }, '⚙️');
+  appuiLong(roue, () => aller('parent'));
+
+  const coin = el('div', {
+    style: { position: 'absolute', top: '0', right: '0', display: 'flex', gap: '10px' }
+  }, roue, boutonSilence());
+
   const element = el('div', {
     class: 'ecran',
     style: { justifyContent: 'center', position: 'relative' }
-  }, boutonSilence(), titre, grille);
+  }, coin, titre, grille);
 
   return {
     element,
-    apresMontage() {
-      anim.cascade(grille.children, { decalage: 90, depart: 90 });
-    }
+    apresMontage() { anim.cascade(grille.children, { decalage: 90, depart: 90 }); }
   };
 }
 
@@ -83,30 +95,8 @@ function carteProfil(p) {
     anim.appui(carte);
     audio.son('tap');
     await univers.appliquer(p.univers_prefere);
-    await aller('diagnostic', { profil: p });
+    await aller('duree', { profil: p });
   }, { once: true });
 
   return carte;
-}
-
-function boutonSilence() {
-  const b = el('button', {
-    type: 'button',
-    'aria-label': 'Couper le son',
-    class: 'bouton',
-    style: {
-      position: 'absolute', top: '0', right: '0',
-      width: 'var(--touche-min)', padding: '0', fontSize: '26px'
-    }
-  }, audio.estActif() ? '🔊' : '🔇');
-
-  b.addEventListener('pointerdown', () => {
-    const actif = audio.silence(audio.estActif());
-    b.textContent = actif ? '🔊' : '🔇';
-    if (actif) audio.son('tap');
-    store.definirReglage('son_actif', actif);
-    anim.appui(b);
-  });
-
-  return b;
 }

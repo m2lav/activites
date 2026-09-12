@@ -1,4 +1,4 @@
-# Les activités — lot 1 (socle)
+# Les activités — lots 1 et 2
 
 Application web d'activités éducatives et de récréations, pour trois enfants
 d'une même famille. Aucun serveur, aucun compte, aucune donnée qui sort de
@@ -19,10 +19,30 @@ l'appareil.
 | Animation | `src/core/anim.js` | Glissement d'écran, arrivée en cascade, récompense, retour d'appui |
 | Audio | `src/core/audio.js` | Déblocage iOS, effets synthétisés, voix fr-FR, silence global |
 | Univers | `src/core/univers.js` + `assets/univers/` | Palette et typographie pilotées par manifeste JSON |
+| Moteur de séance | `src/core/session.js` | Enchaînement effort / détente, temps imparti, bilan |
+| Sablier | `src/ui/sablier.js` | Un segment par minute, visible en permanence |
+| Pavé numérique | `src/ui/pave-numerique.js` | Dix touches dessinées, jamais le clavier iOS |
+| Activités | `src/activities/` | Registre + contrat commun à toutes les activités |
 
-Quatre écrans : démarrage (déblocage audio), première configuration, choix du
-profil, contrôle du socle. L'écran de contrôle est provisoire : il sera remplacé
-par le choix de la durée au lot 2.
+Parcours complet : démarrage → première configuration → choix du profil →
+choix de la durée → séance → fin de séance. Plus l'espace parent, protégé par
+un code, accessible par **appui long sur la roue dentée** de l'écran d'accueil.
+
+### La règle qui structure tout
+
+Le temps restant n'est consulté **qu'entre deux activités** (`seance.prochaine()`).
+Quand il est écoulé, l'activité en cours va à son terme, puis la séance
+s'achève. Aucun autre endroit du code ne doit décider d'interrompre.
+
+### Ajouter une activité
+
+Créer un module dans `src/activities/` exposant `meta`, `generer(niveau)` et
+`monter(conteneur, exercice, ctx)`, puis l'ajouter à `CATALOGUE` dans
+`src/activities/index.js`. Le moteur s'occupe du reste : rien d'autre à
+modifier. Voir `etoiles.js` comme patron.
+
+Le catalogue ne contient pour l'instant qu'une activité (les étoiles), le temps
+que les lots 3 et 4 le remplissent.
 
 ## Tester sur le PC
 
@@ -72,6 +92,5 @@ iOS, lui seul sait installer une application). Bouton Partager → faire défile
 
 ## Reste à faire
 
-Lot 2 : choix de la durée, sablier, fin de session, espace parent.
-Lot 3 : calcul mental complet, pavé numérique, roue de difficulté en appui long.
-Lot 4 : le reste du catalogue. Lot 5 : assets définitifs et finition.
+Lot 3 : calcul mental de bout en bout, roue de difficulté en appui long pendant
+la séance. Lot 4 : le reste du catalogue. Lot 5 : assets définitifs et finition.

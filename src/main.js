@@ -13,11 +13,19 @@ import { installerRapport, signaler } from './ui/erreur.js';
 import { creer as creerDemarrage } from './screens/demarrage.js';
 import { creer as creerConfiguration } from './screens/configuration.js';
 import { creer as creerAccueil } from './screens/accueil.js';
+import { creer as creerDuree } from './screens/duree.js';
+import { creer as creerSeance } from './screens/seance.js';
+import { creer as creerFinSeance } from './screens/fin-seance.js';
+import { creer as creerParent } from './screens/parent.js';
 import { creer as creerDiagnostic } from './screens/diagnostic.js';
 
 enregistrer('demarrage', creerDemarrage);
 enregistrer('configuration', creerConfiguration);
 enregistrer('accueil', creerAccueil);
+enregistrer('duree', creerDuree);
+enregistrer('seance', creerSeance);
+enregistrer('fin-seance', creerFinSeance);
+enregistrer('parent', creerParent);
 enregistrer('diagnostic', creerDiagnostic);
 
 // Avant tout le reste : sur iPad il n'y a pas de console, une erreur non
