@@ -45,8 +45,11 @@ Le fonctionnement hors ligne ne se vérifie donc qu'une fois l'app publiée.
 
 ## Publier
 
-Une fois le dépôt GitHub créé et les Pages activées, chaque envoi met l'app à
-jour sur l'iPad, sans rien réinstaller :
+Adresse en ligne : **https://m2lav.github.io/activites/**
+Dépôt : https://github.com/m2lav/activites
+
+Chaque envoi met l'app à jour sur l'iPad, sans rien réinstaller. Compter une à
+deux minutes entre le `push` et la mise en ligne :
 
 ```bash
 git add -A && git commit -m "Mise à jour" && git push
@@ -54,8 +57,9 @@ git add -A && git commit -m "Mise à jour" && git push
 
 ## Installer sur l'iPad
 
-Ouvrir l'adresse dans **Safari** (pas Chrome), bouton Partager →
-« Sur l'écran d'accueil ». L'app s'ouvre ensuite sans barre d'URL.
+Ouvrir https://m2lav.github.io/activites/ dans **Safari** (pas Chrome : sur
+iOS, lui seul sait installer une application). Bouton Partager → faire défiler
+→ « Sur l'écran d'accueil ». L'app s'ouvre ensuite sans barre d'URL.
 
 ## À savoir
 
