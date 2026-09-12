@@ -18,6 +18,9 @@
   --u-police-titre: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
   --u-police-texte: -apple-system, system-ui, "Segoe UI", sans-serif;
   --u-rayon: 26px;
+  /* Texte posé sur un aplat --u-primaire : blanc dans les trois ambiances,
+     les primaires étant toutes des teintes saturées de valeur moyenne. */
+  --u-sur-primaire: #ffffff;
 
   /* Marges de sécurité : encoche, coins arrondis, barre d'accueil. */
   --marge-h: max(20px, env(safe-area-inset-left), env(safe-area-inset-right));
@@ -166,13 +169,14 @@ input, textarea {
 }
 
 .bouton--primaire {
+  color: var(--u-sur-primaire);
   background: var(--u-primaire);
   border-color: transparent;
 }
 
 .bouton:active {
   transform: scale(.95);
-  background: color-mix(in srgb, var(--u-primaire) 60%, var(--u-carte));
+  background: color-mix(in srgb, var(--u-texte) 9%, var(--u-carte));
 }
 
 .carte {

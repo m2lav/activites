@@ -40,7 +40,8 @@ export const REGLAGES_PAR_DEFAUT = {
   son_actif: true,
   musique_active: true,
   code_parent: '1234',        // à changer depuis l'espace parent (lot 2)
-  duree_par_defaut: 10        // minutes
+  duree_par_defaut: 10,       // minutes
+  ambiance: 'nuit'            // nuit | jour | papier — voir core/univers.js
 };
 
 let _db = null;

@@ -19,6 +19,7 @@ l'appareil.
 | Animation | `src/core/anim.js` | Glissement d'écran, arrivée en cascade, récompense, retour d'appui |
 | Audio | `src/core/audio.js` | Déblocage iOS, effets synthétisés, voix fr-FR, silence global |
 | Univers | `src/core/univers.js` + `assets/univers/` | Palette et typographie pilotées par manifeste JSON |
+| Ambiances | idem | Trois déclinaisons — nuit, jour, papier — commutables à chaud |
 | Moteur de séance | `src/core/session.js` | Enchaînement effort / détente, temps imparti, bilan |
 | Sablier | `src/ui/sablier.js` | Un segment par minute, visible en permanence |
 | Pavé numérique | `src/ui/pave-numerique.js` | Dix touches dessinées, jamais le clavier iOS |
@@ -34,6 +35,22 @@ un code, accessible par **appui long sur la roue dentée** de l'écran d'accueil
 Le temps restant n'est consulté **qu'entre deux activités** (`seance.prochaine()`).
 Quand il est écoulé, l'activité en cours va à son terme, puis la séance
 s'achève. Aucun autre endroit du code ne doit décider d'interrompre.
+
+### Ambiances — phase d'essai
+
+Deux axes indépendants : l'**univers** est choisi par l'enfant (décor,
+typographie, arrondis) ; l'**ambiance** est un réglage global qui décide du
+fond. Trois pistes cohabitent le temps de trancher :
+
+| Ambiance | Direction |
+|---|---|
+| Nuit | Fonds profonds, couleurs vives. Doux le soir. |
+| Jour | Fonds clairs et aplats francs, d'après la planche Canva validée. |
+| Papier | Crème et encre, esprit cahier de vacances. |
+
+Chaque univers fournit ses trois déclinaisons dans son manifeste, sous
+`ambiances`. On bascule depuis **Espace parent → Réglages → Ambiance**, effet
+immédiat. Une fois la décision prise, les deux autres seront retirées.
 
 ### Ajouter une activité
 

@@ -13,7 +13,7 @@ import { el } from '../ui/dom.js';
 import * as store from '../core/store.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
-import { UNIVERS, manifeste } from '../core/univers.js';
+import { UNIVERS, AMBIANCES, manifeste, palette, ambianceActive, definirAmbiance, universActif } from '../core/univers.js';
 import { creerPave } from '../ui/pave-numerique.js';
 import { aller, retour } from '../core/router.js';
 import { vider as viderBandeau } from '../ui/bandeau.js';
@@ -219,6 +219,8 @@ function jauge(taux) {
 async function sectionReglages(profils) {
   const contenus = [];
 
+  contenus.push(await choixAmbiance());
+
   // Son
   const sonActif = await store.reglage('son_actif');
   contenus.push(interrupteur('Son et musique', sonActif !== false, async (v) => {
@@ -290,6 +292,70 @@ async function sectionReglages(profils) {
   }
 
   return bloc('Réglages', contenus);
+}
+
+/**
+ * Choix de l'ambiance globale.
+ *
+ * Phase d'essai : les trois pistes cohabitent pour qu'on puisse les comparer
+ * sur l'iPad, en vrai, plutôt que sur une capture. Une fois la décision prise,
+ * on gardera la retenue et cette section disparaîtra.
+ */
+async function choixAmbiance() {
+  const reference = universActif() || 'mer';
+  const m = await manifeste(reference).catch(() => null);
+  const courante = ambianceActive();
+
+  const cartes = AMBIANCES.map((a) => {
+    const p = m ? palette(m, a.id) : {};
+
+    const echantillon = el('div', {
+      style: {
+        height: '54px', borderRadius: '10px', background: p.fond || '#888',
+        border: '1px solid color-mix(in srgb, var(--u-texte) 18%, transparent)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px'
+      }
+    }, ...['primaire', 'secondaire', 'accent'].map((c) => el('div', {
+      style: { width: '17px', height: '17px', borderRadius: '50%', background: p[c] || '#555' }
+    })));
+
+    const b = el('button', {
+      type: 'button',
+      style: {
+        flex: '1 1 150px', minWidth: '140px', padding: '12px', cursor: 'pointer',
+        display: 'grid', gap: '8px', textAlign: 'left',
+        font: 'inherit', color: 'inherit',
+        background: 'color-mix(in srgb, var(--u-carte) 55%, transparent)',
+        borderRadius: '14px',
+        border: `2px solid ${a.id === courante ? 'var(--u-secondaire)' : 'transparent'}`
+      },
+      dataset: { ambiance: a.id }
+    },
+      echantillon,
+      el('strong', { style: { fontSize: '16px' } }, a.nom),
+      el('span', { style: { fontSize: '13px', color: 'var(--u-texte-doux)' } }, a.description)
+    );
+
+    b.addEventListener('pointerdown', async () => {
+      anim.appui(b);
+      audio.son('tap');
+      await definirAmbiance(a.id);
+      await store.definirReglage('ambiance', a.id);
+      for (const autre of cartes) {
+        autre.style.borderColor = autre.dataset.ambiance === a.id
+          ? 'var(--u-secondaire)' : 'transparent';
+      }
+    });
+
+    return b;
+  });
+
+  return el('div', { class: 'carte', style: { display: 'grid', gap: '12px' } },
+    el('strong', {}, 'Ambiance'),
+    el('p', { style: { margin: '0', fontSize: '14px', color: 'var(--u-texte-doux)' } },
+      "À l'essai : touche-les pour comparer, le changement est immédiat."),
+    el('div', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap' } }, ...cartes)
+  );
 }
 
 function interrupteur(libelle, valeurInitiale, surChangement) {

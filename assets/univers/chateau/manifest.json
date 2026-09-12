@@ -1,21 +1,43 @@
 {
   "id": "chateau",
   "nom": "Château & princesses",
-  "palette": {
-    "fond": "#2a1f33",
-    "fond-2": "#3c2c49",
-    "carte": "#4d3a5c",
-    "primaire": "#e2a0c0",
-    "secondaire": "#b9a3e0",
-    "accent": "#e9c37a",
-    "texte": "#fdf5fa",
-    "texte-doux": "#c7b2d4"
-  },
   "police": {
     "titre": "ui-serif, \"New York\", Georgia, \"Times New Roman\", serif",
     "texte": "-apple-system, system-ui, \"Segoe UI\", sans-serif"
   },
   "rayon": "32px",
+  "ambiances": {
+    "nuit": {
+      "fond": "#2a1f33",
+      "fond-2": "#3c2c49",
+      "carte": "#4d3a5c",
+      "primaire": "#e2a0c0",
+      "secondaire": "#b9a3e0",
+      "accent": "#e9c37a",
+      "texte": "#fdf5fa",
+      "texte-doux": "#c7b2d4"
+    },
+    "jour": {
+      "fond": "#fbeef5",
+      "fond-2": "#f4ddea",
+      "carte": "#ffffff",
+      "primaire": "#c4628e",
+      "secondaire": "#7d63b8",
+      "accent": "#c9942f",
+      "texte": "#2e1c2a",
+      "texte-doux": "#8a6f80"
+    },
+    "papier": {
+      "fond": "#f5eee6",
+      "fond-2": "#ece0d6",
+      "carte": "#fffaf4",
+      "primaire": "#b46b8c",
+      "secondaire": "#8073ae",
+      "accent": "#c19a4e",
+      "texte": "#2f2530",
+      "texte-doux": "#7d7080"
+    }
+  },
   "sprites": [],
   "sons": {}
 }

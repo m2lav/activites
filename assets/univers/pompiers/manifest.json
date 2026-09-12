@@ -1,21 +1,43 @@
 {
   "id": "pompiers",
   "nom": "Pompiers",
-  "palette": {
-    "fond": "#17191e",
-    "fond-2": "#24272e",
-    "carte": "#31353e",
-    "primaire": "#e03131",
-    "secondaire": "#ffd43b",
-    "accent": "#f08c00",
-    "texte": "#fff8f3",
-    "texte-doux": "#b6bac3"
-  },
   "police": {
     "titre": "ui-rounded, \"SF Pro Rounded\", -apple-system, system-ui, sans-serif",
     "texte": "-apple-system, system-ui, \"Segoe UI\", sans-serif"
   },
   "rayon": "18px",
+  "ambiances": {
+    "nuit": {
+      "fond": "#17191e",
+      "fond-2": "#24272e",
+      "carte": "#31353e",
+      "primaire": "#e03131",
+      "secondaire": "#ffd43b",
+      "accent": "#f08c00",
+      "texte": "#fff8f3",
+      "texte-doux": "#b6bac3"
+    },
+    "jour": {
+      "fond": "#fdf0ee",
+      "fond-2": "#fadfdb",
+      "carte": "#ffffff",
+      "primaire": "#d42b2b",
+      "secondaire": "#d99400",
+      "accent": "#e06c00",
+      "texte": "#2a1512",
+      "texte-doux": "#8a6a64"
+    },
+    "papier": {
+      "fond": "#f4ece3",
+      "fond-2": "#ece0d2",
+      "carte": "#fffaf2",
+      "primaire": "#c33a2a",
+      "secondaire": "#d59b1f",
+      "accent": "#b56428",
+      "texte": "#2e2119",
+      "texte-doux": "#7d6b58"
+    }
+  },
   "sprites": [],
   "sons": {}
 }

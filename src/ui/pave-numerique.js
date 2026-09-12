@@ -80,7 +80,8 @@ export function creerPave({
         fontWeight: '800', padding: '0',
         background: variante === 'valider' ? 'var(--u-primaire)'
           : variante === 'effacer' ? 'color-mix(in srgb, var(--u-carte) 60%, transparent)'
-            : 'var(--u-carte)'
+            : 'var(--u-carte)',
+        color: variante === 'valider' ? 'var(--u-sur-primaire)' : 'var(--u-texte)'
       }
     }, libelle);
 

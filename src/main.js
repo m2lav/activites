@@ -44,7 +44,7 @@ neutraliserGestesIOS();
   }
 
   try {
-    await univers.appliquer('mer');
+    await univers.appliquer('mer', await store.reglage('ambiance').catch(() => 'nuit'));
     await aller('demarrage');
   } catch (e) {
     signaler(e);

@@ -146,6 +146,7 @@ function fiche(manifestes, index) {
   // « Mer & voiliers » par défaut : c'est l'univers commun aux trois enfants.
   let choisi = manifestes.some((m) => m.id === 'mer') ? 'mer' : manifestes[0]?.id;
   const pastilles = manifestes.map((m) => {
+    const teintes = univers.palette(m);
     const p = el('button', {
       type: 'button',
       'aria-label': m.nom,
@@ -153,7 +154,7 @@ function fiche(manifestes, index) {
       style: {
         width: '30px', height: '30px', borderRadius: '50%', padding: '0',
         cursor: 'pointer',
-        background: `linear-gradient(140deg, ${m.palette.primaire}, ${m.palette.secondaire})`,
+        background: `linear-gradient(140deg, ${teintes.primaire}, ${teintes.secondaire})`,
         border: '3px solid transparent',
         transition: 'transform .15s ease, border-color .15s ease'
       },

@@ -16,7 +16,7 @@
    purger proprement les anciens caches.
    ========================================================================= */
 
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = `activites-${VERSION}`;
 
 const SOCLE = [
