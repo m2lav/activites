@@ -1,0 +1,36 @@
+/* =========================================================================
+   États de départ des animations.
+   Le mouvement lui-même est piloté en JavaScript (src/core/anim.js) via
+   element.animate() : c'est ce qui permet d'enchaîner et d'attendre la fin
+   d'une transition avant de démonter l'écran précédent.
+   ========================================================================= */
+
+/* Un élément marqué « en cascade » est invisible tant qu'anim.js ne l'a pas
+   fait entrer. Sans cette règle, on verrait une image fixe puis un saut. */
+.cascade > * { opacity: 0; }
+
+/* Pendant une transition, on neutralise le tactile pour éviter le double tap
+   sur deux écrans superposés. */
+.scene--transition { pointer-events: none; }
+
+/* Halo de récompense (utilisé par anim.recompense). */
+.halo {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 3px solid var(--u-secondaire);
+  opacity: 0;
+}
+
+/* Respiration douce, pour inviter à toucher sans clignoter. */
+.respire { animation: respire 2.6s ease-in-out infinite; }
+
+@keyframes respire {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%      { transform: scale(1.04); opacity: .88; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cascade > * { opacity: 1; }
+  .respire { animation: none; }
+}

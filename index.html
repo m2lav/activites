@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Les activités</title>
+
+<!-- Pas de zoom, pas de mise à l'échelle, plein écran sous l'encoche -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
+<!-- Installation « Ajouter à l'écran d'accueil » : mode standalone, sans barre d'URL -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Activités">
+<meta name="theme-color" content="#0b2237">
+<meta name="format-detection" content="telephone=no">
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./assets/icons/icone-180.png">
+<link rel="icon" href="./assets/icons/icone-192.png" sizes="192x192">
+
+<link rel="stylesheet" href="./styles/base.css">
+<link rel="stylesheet" href="./styles/transitions.css">
+</head>
+<body>
+
+<div class="app">
+  <header id="bandeau" class="bandeau" hidden></header>
+  <main id="scene" class="scene" aria-live="polite"></main>
+</div>
+
+<!-- Invitation à tourner l'iPad : purement CSS, actif en portrait sur grand écran -->
+<div class="rotation" aria-hidden="true">
+  <div class="rotation__icone">
+    <svg viewBox="0 0 100 100" width="120" height="120" fill="none" aria-hidden="true">
+      <rect x="30" y="12" width="40" height="62" rx="7" stroke="currentColor" stroke-width="4"/>
+      <path d="M18 78a34 34 0 0 0 30 18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <path d="M14 66l4 13 13-4" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <p class="rotation__texte">Tourne l'iPad</p>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

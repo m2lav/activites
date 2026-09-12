@@ -1,0 +1,203 @@
+/* =========================================================================
+   Socle visuel.
+   Les couleurs ne sont jamais écrites ici : elles arrivent sous forme de
+   variables --u-* posées par src/core/univers.js à partir du manifeste de
+   l'univers actif. Ce fichier ne décrit que la structure et les règles iOS.
+   ========================================================================= */
+
+:root {
+  /* Valeurs de repli, remplacées dès qu'un univers est appliqué. */
+  --u-fond: #0b2237;
+  --u-fond-2: #11314c;
+  --u-carte: #17405f;
+  --u-primaire: #1c7ed6;
+  --u-secondaire: #38d9a9;
+  --u-accent: #e8d5a3;
+  --u-texte: #f6fbff;
+  --u-texte-doux: #a8c3d8;
+  --u-police-titre: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+  --u-police-texte: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --u-rayon: 26px;
+
+  /* Marges de sécurité : encoche, coins arrondis, barre d'accueil. */
+  --marge-h: max(20px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --marge-haut: max(16px, env(safe-area-inset-top));
+  --marge-bas: max(16px, env(safe-area-inset-bottom));
+
+  /* Une touche ne descend jamais sous ce seuil (doigt de 4 ans). */
+  --touche-min: 64px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;              /* aucun scroll de page : tout tient à l'écran */
+  overscroll-behavior: none;     /* pas de rebond élastique iOS */
+}
+
+body {
+  background: var(--u-fond);
+  color: var(--u-texte);
+  font-family: var(--u-police-texte);
+  font-size: 18px;
+  line-height: 1.4;
+
+  /* Comportements tactiles iOS à neutraliser d'emblée. */
+  touch-action: manipulation;              /* supprime le zoom double-tap */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;             /* pas de menu sur appui long */
+  -webkit-user-select: none;
+  user-select: none;
+
+  transition: background-color .6s ease;
+}
+
+[hidden] { display: none !important; }
+
+/* Les champs de saisie restent sélectionnables malgré la règle globale. */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Les rares zones où l'on veut vraiment pouvoir sélectionner (export JSON). */
+.selectionnable {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* ---- Ossature -------------------------------------------------------- */
+
+.app {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background:
+    radial-gradient(120% 90% at 50% 0%, var(--u-fond-2) 0%, var(--u-fond) 62%);
+  transition: background .6s ease;
+}
+
+.bandeau {
+  grid-row: 1;
+  padding: var(--marge-haut) var(--marge-h) 0;
+  min-height: 0;
+}
+
+/* Les écrans se superposent pendant la transition, d'où la grille 1x1. */
+.scene {
+  grid-row: 2;
+  position: relative;
+  display: grid;
+  grid-template: 1fr / 1fr;
+  overflow: hidden;
+}
+
+.ecran {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--marge-haut) var(--marge-h) var(--marge-bas);
+  will-change: transform, opacity;
+}
+
+.ecran--centre {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ---- Typographie ----------------------------------------------------- */
+
+.titre {
+  font-family: var(--u-police-titre);
+  font-weight: 800;
+  font-size: clamp(30px, 5.2vw, 56px);
+  letter-spacing: -0.01em;
+  margin: 0 0 .2em;
+}
+
+.sous-titre {
+  font-family: var(--u-police-titre);
+  font-weight: 600;
+  font-size: clamp(17px, 2.2vw, 24px);
+  color: var(--u-texte-doux);
+  margin: 0;
+}
+
+/* ---- Éléments tactiles ----------------------------------------------- */
+
+.bouton {
+  font-family: var(--u-police-titre);
+  font-weight: 700;
+  font-size: clamp(17px, 2vw, 22px);
+  color: var(--u-texte);
+  background: var(--u-carte);
+  border: 2px solid color-mix(in srgb, var(--u-texte) 14%, transparent);
+  border-radius: calc(var(--u-rayon) * .7);
+  min-height: var(--touche-min);
+  padding: 0 28px;
+  cursor: pointer;
+  transition: transform .12s ease, background-color .2s ease, border-color .2s ease;
+}
+
+.bouton--primaire {
+  background: var(--u-primaire);
+  border-color: transparent;
+}
+
+.bouton:active {
+  transform: scale(.95);
+  background: color-mix(in srgb, var(--u-primaire) 60%, var(--u-carte));
+}
+
+.carte {
+  background: color-mix(in srgb, var(--u-carte) 70%, transparent);
+  border: 2px solid color-mix(in srgb, var(--u-texte) 10%, transparent);
+  border-radius: var(--u-rayon);
+  padding: 22px 26px;
+}
+
+/* ---- Invitation à tourner l'appareil --------------------------------- */
+
+.rotation {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--u-fond);
+  color: var(--u-texte);
+}
+
+.rotation__icone { color: var(--u-secondaire); animation: bascule 2.4s ease-in-out infinite; }
+.rotation__texte { font-family: var(--u-police-titre); font-size: 30px; font-weight: 700; margin: 0; }
+
+@keyframes bascule {
+  0%, 45%, 100% { transform: rotate(0deg); }
+  60%, 85%      { transform: rotate(-90deg); }
+}
+
+/* Uniquement sur tablette : sur iPhone le portrait reste acceptable. */
+@media (orientation: portrait) and (min-width: 700px) {
+  .rotation { display: flex; }
+}
+
+/* ---- Accessibilité --------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
