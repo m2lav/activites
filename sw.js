@@ -16,7 +16,7 @@
    purger proprement les anciens caches.
    ========================================================================= */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `activites-${VERSION}`;
 
 const SOCLE = [
@@ -36,6 +36,7 @@ const SOCLE = [
   './src/screens/accueil.js',
   './src/screens/diagnostic.js',
   './src/ui/dom.js',
+  './src/ui/erreur.js',
   './assets/univers/mer/manifest.json',
   './assets/univers/pompiers/manifest.json',
   './assets/univers/chateau/manifest.json',

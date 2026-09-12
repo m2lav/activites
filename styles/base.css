@@ -113,6 +113,24 @@ input, textarea {
   text-align: center;
 }
 
+/*
+   Écran qui accepte de défiler quand la place manque (configuration, espace
+   parent). Le centrage est porté par la marge automatique du contenu et non
+   par justify-content : centrer un contenu plus grand que son cadre le fait
+   déborder par le haut, hors d'atteinte.
+*/
+.ecran--defilable {
+  overflow-y: auto;
+  justify-content: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ecran--defilable > .contenu {
+  margin: auto 0;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
 /* ---- Typographie ----------------------------------------------------- */
 
 .titre {
@@ -162,6 +180,23 @@ input, textarea {
   border: 2px solid color-mix(in srgb, var(--u-texte) 10%, transparent);
   border-radius: var(--u-rayon);
   padding: 22px 26px;
+}
+
+/* ---- Bandeau de rapport d'erreur ------------------------------------- */
+
+.rapport {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 90;
+  padding: 14px calc(var(--marge-h)) calc(var(--marge-bas) + 14px);
+  background: #6b1d1d;
+  color: #ffecec;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  max-height: 42vh;
+  overflow-y: auto;
 }
 
 /* ---- Invitation à tourner l'appareil --------------------------------- */

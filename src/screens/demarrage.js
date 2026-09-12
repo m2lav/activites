@@ -10,6 +10,7 @@ import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
 import * as store from '../core/store.js';
+import { signaler, contexte } from '../ui/erreur.js';
 import { aller } from '../core/router.js';
 
 export async function creer() {
@@ -32,22 +33,56 @@ export async function creer() {
     style: { display: 'flex', flexDirection: 'column', alignItems: 'center' }
   }, pastille, titre, invite);
 
-  const element = el('div', { class: 'ecran ecran--centre' }, bloc);
+  // Ligne d'identification de l'appareil, discrète. Elle sert au diagnostic
+  // à distance tant que l'installation n'est pas validée ; à retirer au lot 5.
+  const tampon = el('p', {
+    style: {
+      position: 'absolute', bottom: 'var(--marge-bas)', left: '0', right: '0',
+      textAlign: 'center', fontSize: '12px', opacity: '.35', margin: '0'
+    }
+  }, contexte());
+
+  const element = el('div', {
+    class: 'ecran ecran--centre',
+    style: { position: 'relative' }
+  }, bloc, tampon);
 
   let parti = false;
+
   const demarrer = async () => {
     if (parti) return;
     parti = true;
-    await audio.debloquer();
-    audio.son('juste');
+
+    // Retour visuel immédiat : le tap est pris en compte, quoi qu'il arrive
+    // ensuite. Sans lui, l'écran paraît mort pendant le déblocage audio.
     anim.appui(pastille);
-    // Premier lancement sur cet appareil : on demande d'abord qui va jouer.
-    const configure = await store.estConfigure().catch(() => false);
-    await aller(configure ? 'accueil' : 'configuration');
+    invite.textContent = 'Un instant…';
+
+    try {
+      await audio.debloquer();
+      audio.son('juste');
+
+      // Premier lancement sur cet appareil : on demande d'abord qui va jouer.
+      // Si la base tarde ou refuse, on part sur la configuration plutôt que
+      // de rester coincé ici.
+      const configure = await Promise.race([
+        store.estConfigure().catch(() => false),
+        new Promise((r) => setTimeout(() => r(false), 2500))
+      ]);
+
+      await aller(configure ? 'accueil' : 'configuration');
+    } catch (e) {
+      // On rouvre la porte : un second tap doit pouvoir réessayer.
+      parti = false;
+      invite.textContent = "Touche l'écran pour commencer";
+      signaler(e);
+    }
   };
 
-  // pointerdown : le doigt comme le Pencil, et sans les 300 ms du clic.
-  element.addEventListener('pointerdown', demarrer, { once: true });
+  // pointerdown couvre le doigt et le Pencil. click reste en filet pour les
+  // navigateurs qui ne livrent pas l'événement pointeur sur un div.
+  element.addEventListener('pointerdown', demarrer);
+  element.addEventListener('click', demarrer);
 
   return {
     element,

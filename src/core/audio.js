@@ -25,24 +25,40 @@ const VOLUME = 0.5;
 
 export function estDebloque() { return debloque; }
 
-/** À appeler depuis un vrai geste tactile, une seule fois. */
+const delai = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * À appeler depuis un vrai geste tactile.
+ *
+ * Ne rejette jamais et ne bloque jamais : sur iOS, `ctx.resume()` rend
+ * parfois une promesse qui ne se résout pas du tout. Si l'appel traîne, on
+ * continue sans lui — le son manquera peut-être, mais l'application démarre.
+ * C'est la seule chose qui compte à cet instant.
+ */
 export async function debloquer() {
   if (debloque) return true;
+  debloque = true;   // posé d'emblée : un échec ne doit pas bloquer les taps suivants
 
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (Ctx) {
-    ctx = new Ctx();
-    maitre = ctx.createGain();
-    maitre.gain.value = actif ? VOLUME : 0;
-    maitre.connect(ctx.destination);
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) {
+      ctx = new Ctx();
+      maitre = ctx.createGain();
+      maitre.gain.value = actif ? VOLUME : 0;
+      maitre.connect(ctx.destination);
 
-    if (ctx.state === 'suspended') { try { await ctx.resume(); } catch { /* ignoré */ } }
+      // Un buffer muet d'un échantillon : le rite de passage attendu par iOS.
+      const src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(maitre);
+      src.start(0);
 
-    // Un buffer muet d'un échantillon : le rite de passage attendu par iOS.
-    const src = ctx.createBufferSource();
-    src.buffer = ctx.createBuffer(1, 1, 22050);
-    src.connect(maitre);
-    src.start(0);
+      if (ctx.state === 'suspended') {
+        await Promise.race([ctx.resume().catch(() => {}), delai(400)]);
+      }
+    }
+  } catch (e) {
+    console.warn('Audio indisponible.', e);
   }
 
   // La synthèse vocale a son propre déblocage, également lié au geste.
@@ -53,8 +69,7 @@ export async function debloquer() {
     speechSynthesis.speak(u);
   } catch { /* ignoré */ }
 
-  chargerVoix();
-  debloque = true;
+  try { chargerVoix(); } catch { /* ignoré */ }
   return true;
 }
 

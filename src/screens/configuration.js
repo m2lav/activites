@@ -75,16 +75,21 @@ export async function creer() {
   for (let i = 0; i < 3; i++) ajouter(true);
   rangee.addEventListener('input', majValider);
 
-  const element = el('div', { class: 'ecran', style: { justifyContent: 'center' } },
-    el('h1', { class: 'titre', style: { textAlign: 'center' } }, 'Qui va jouer ?'),
-    el('p', {
-      class: 'sous-titre',
-      style: { textAlign: 'center', maxWidth: '46ch', margin: '0 auto' }
-    }, "À remplir une seule fois. Ces informations restent sur cet iPad et ne sont envoyées nulle part."),
-    rangee,
-    el('div', {
-      style: { display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }
-    }, plus, valider)
+  const element = el('div', { class: 'ecran ecran--defilable' },
+    el('div', { class: 'contenu' },
+      el('h1', {
+        class: 'titre',
+        style: { textAlign: 'center', fontSize: 'clamp(26px, 4vw, 46px)' }
+      }, 'Qui va jouer ?'),
+      el('p', {
+        class: 'sous-titre',
+        style: { textAlign: 'center', maxWidth: '46ch', margin: '0 auto' }
+      }, "À remplir une seule fois. Ces informations restent sur cet iPad et ne sont envoyées nulle part."),
+      rangee,
+      el('div', {
+        style: { display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }
+      }, plus, valider)
+    )
   );
 
   return {

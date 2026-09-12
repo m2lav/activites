@@ -8,6 +8,7 @@ import * as store from './core/store.js';
 import * as audio from './core/audio.js';
 import * as univers from './core/univers.js';
 import { enregistrer, aller } from './core/router.js';
+import { installerRapport, signaler } from './ui/erreur.js';
 
 import { creer as creerDemarrage } from './screens/demarrage.js';
 import { creer as creerConfiguration } from './screens/configuration.js';
@@ -18,6 +19,10 @@ enregistrer('demarrage', creerDemarrage);
 enregistrer('configuration', creerConfiguration);
 enregistrer('accueil', creerAccueil);
 enregistrer('diagnostic', creerDiagnostic);
+
+// Avant tout le reste : sur iPad il n'y a pas de console, une erreur non
+// rapportée se traduit par un écran figé et rien d'autre.
+installerRapport();
 
 neutraliserGestesIOS();
 
@@ -30,8 +35,12 @@ neutraliserGestesIOS();
     console.error('Stockage indisponible, session non enregistrée.', e);
   }
 
-  await univers.appliquer('mer');
-  await aller('demarrage');
+  try {
+    await univers.appliquer('mer');
+    await aller('demarrage');
+  } catch (e) {
+    signaler(e);
+  }
 
   enregistrerServiceWorker();
 })();
