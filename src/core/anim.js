@@ -16,8 +16,23 @@ export function mouvementReduit() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function fin(animation) {
-  return animation.finished.catch(() => {});
+/**
+ * Attend la fin d'une animation — mais jamais indéfiniment.
+ *
+ * Le navigateur met les animations en pause quand la page passe en
+ * arrière-plan : la promesse `finished` ne se résout alors plus, et tout ce
+ * qui l'attend reste suspendu. Le routeur, qui attend la fin d'une
+ * transition avant de démonter l'écran précédent, se bloquerait pour de bon.
+ * On double donc chaque attente d'une sortie de secours calée sur la durée
+ * réelle de l'animation.
+ */
+export function attendreFin(animation) {
+  const t = animation.effect?.getComputedTiming?.() || {};
+  const secours = (t.delay || 0) + (t.activeDuration || 600) + 500;
+  return Promise.race([
+    animation.finished.catch(() => {}),
+    new Promise((ok) => setTimeout(ok, secours))
+  ]);
 }
 
 /* ---- Transition entre deux écrans ------------------------------------ */
@@ -155,3 +170,6 @@ export function appui(element) {
     { transform: 'scale(1)' }
   ], { duration: 190, easing: 'ease-out' });
 }
+
+/* Alias interne : le reste du fichier appelle fin(), plus court à lire. */
+const fin = attendreFin;

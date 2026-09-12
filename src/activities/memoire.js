@@ -213,10 +213,12 @@ export function monter(conteneur, exercice, ctx) {
     }, 1300);
   }
 
+  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
+  const DUREE = ctx.duree ?? meta.duree * 1000;
   const debut = Date.now();
   const battement = setInterval(() => {
     if (fini) return;
-    if (Date.now() - debut >= meta.duree * 1000) terminer();
+    if (Date.now() - debut >= DUREE) terminer();
   }, 500);
 
   function terminer() {
@@ -228,9 +230,14 @@ export function monter(conteneur, exercice, ctx) {
     ctx.surFin({ reussites: totalTrouvees, erreurs });
   }
 
+  // On dessine tout de suite, avec les dimensions de repli : requestAnimationFrame
+  // ne se déclenche pas si la page n'est pas visible, et l'activité resterait
+  // vide. Le second passage, lui, mesure vraiment le conteneur.
+  disposer();
+  compteur.textContent = `0 / ${courant.nombre}`;
   requestAnimationFrame(() => {
+    if (fini) return;
     disposer();
-    compteur.textContent = `0 / ${courant.nombre}`;
     anim.cascade(plateau.children, { decalage: 25, depart: 60 });
   });
 

@@ -14,11 +14,16 @@
 import * as store from './store.js';
 import { pourAge } from '../activities/index.js';
 
-export function creerSeance({ profil, niveaux, dureeMinutes }) {
+/** Durée d'une activité en mode test : juste assez pour la juger. */
+const DUREE_TEST = 22_000;
+
+export function creerSeance({ profil, niveaux, dureeMinutes, mode = 'normal' }) {
+  const test = mode === 'test';
   const dureeMs = dureeMinutes * 60_000;
   const debut = Date.now();
   const resultats = [];
   let derniere = null;
+  let indexTest = 0;
   // Dernière activité vue dans chaque catégorie. Mémoriser seulement la
   // précédente ne sert à rien : comme on alterne, elle est toujours de
   // l'autre catégorie, donc jamais candidate.
@@ -28,10 +33,6 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
   const restant = () => Math.max(0, dureeMs - ecoule());
 
   /**
-   * Activité suivante, ou null si le temps est écoulé.
-   * Appelé uniquement entre deux activités : c'est là toute la règle n°2.
-   */
-  /**
    * Part du temps d'une activité qui doit encore tenir dans la séance pour
    * qu'on la lance. En dessous, mieux vaut conclure : dépasser de quelques
    * secondes est normal, lancer une activité de 50 s pour 5 s restantes ne
@@ -39,7 +40,21 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
    */
   const MARGE = 0.4;
 
+  /**
+   * Activité suivante, ou null quand il n'y a plus lieu d'en lancer une.
+   * Appelée uniquement entre deux activités : c'est là toute la règle n°2.
+   */
   function prochaine() {
+    // Mode test : on parcourt le catalogue dans l'ordre, une fois chacune,
+    // sans tenir compte de l'horloge. Le but n'est pas de jouer une séance
+    // mais de voir défiler toutes les activités.
+    if (test) {
+      const jouables = pourAge(profil.age);
+      const meta = jouables[indexTest++] || null;
+      if (meta) { derniere = meta; dernieresParCategorie[meta.categorie] = meta.id; }
+      return meta;
+    }
+
     if (restant() <= 0) return null;
 
     const jouables = pourAge(profil.age)
@@ -70,6 +85,15 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
 
   function niveauDuType(type) {
     return niveaux?.[type] ?? 5;
+  }
+
+  /**
+   * Durée allouée à une activité, en millisecondes.
+   * C'est la séance qui décide, pas l'activité : sans ce point unique, on ne
+   * peut ni raccourcir pour un test, ni adapter plus tard à l'enfant.
+   */
+  function dureeActivite(meta) {
+    return test ? DUREE_TEST : meta.duree * 1000;
   }
 
   /**
@@ -111,6 +135,8 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
 
   async function sauvegarder() {
     const b = bilan();
+    // Une séance de test ne doit pas polluer le suivi de l'enfant.
+    if (test) return b;
     try {
       await store.enregistrerSession({
         profil_id: profil.id,
@@ -127,7 +153,7 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
 
   return {
     profil, dureeMs, dureeMinutes,
-    ecoule, restant, prochaine,
+    ecoule, restant, prochaine, dureeActivite, test,
     niveauDe, niveauDuType, definirNiveau,
     enregistrer, bilan, sauvegarder
   };

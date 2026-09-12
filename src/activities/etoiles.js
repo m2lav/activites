@@ -33,7 +33,9 @@ export function generer(niveau) {
   };
 }
 
-export function monter(conteneur, exercice, { surFin }) {
+export function monter(conteneur, exercice, ctx) {
+  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
+  const DUREE = ctx.duree ?? exercice.duree;
   let reussites = 0;
   let erreurs = 0;       // étoiles éteintes sans avoir été touchées
   let fini = false;
@@ -64,7 +66,7 @@ export function monter(conteneur, exercice, { surFin }) {
     fini = true;
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
-    surFin({ reussites, erreurs });
+    ctx.surFin({ reussites, erreurs });
   }
 
   function poser() {
@@ -125,7 +127,7 @@ export function monter(conteneur, exercice, { surFin }) {
   const debut = Date.now();
   const rythme = () => {
     if (fini) return;
-    if (Date.now() - debut >= exercice.duree) {
+    if (Date.now() - debut >= DUREE) {
       // On laisse les dernières étoiles vivre leur vie avant de conclure.
       attendre(terminer, exercice.vie);
       return;

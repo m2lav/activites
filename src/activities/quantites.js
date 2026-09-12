@@ -165,10 +165,12 @@ export function monter(conteneur, exercice, ctx) {
     anim.cascade(jetons.children, { decalage: 55, depart: 0 });
   }
 
+  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
+  const DUREE = ctx.duree ?? meta.duree * 1000;
   const debut = Date.now();
   const battement = setInterval(() => {
     if (fini) return;
-    if (Date.now() - debut >= meta.duree * 1000) terminer();
+    if (Date.now() - debut >= DUREE) terminer();
   }, 500);
 
   function terminer() {

@@ -288,10 +288,12 @@ export function monter(conteneur, exercice, ctx) {
 
   /* -- Durée -- */
 
+  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
+  const DUREE = ctx.duree ?? meta.duree * 1000;
   const debut = Date.now();
   const battement = setInterval(() => {
     if (fini) return;
-    if (Date.now() - debut >= meta.duree * 1000) terminer();
+    if (Date.now() - debut >= DUREE) terminer();
   }, 500);
 
   function terminer() {
@@ -303,8 +305,15 @@ export function monter(conteneur, exercice, ctx) {
     ctx.surFin({ reussites, erreurs: 0 });   // se perdre n'est pas une faute
   }
 
-  // Le premier dessin attend que le conteneur ait ses dimensions.
-  requestAnimationFrame(() => { dessiner(); anim.apparition(grilleEl); });
+  // Premier dessin immédiat, avec les dimensions de repli : requestAnimationFrame
+  // ne se déclenche pas si la page n'est pas visible, et le labyrinthe resterait
+  // invisible. Le second passage mesure réellement le conteneur.
+  dessiner();
+  requestAnimationFrame(() => {
+    if (fini) return;
+    dessiner();
+    anim.apparition(grilleEl);
+  });
 
   const surRedimension = () => { if (!fini) dessiner(); };
   window.addEventListener('resize', surRedimension);

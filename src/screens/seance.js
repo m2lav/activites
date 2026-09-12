@@ -22,9 +22,9 @@ import { creerRoue } from '../ui/reglage-difficulte.js';
 import * as bandeau from '../ui/bandeau.js';
 import { aller, reinitialiserPile } from '../core/router.js';
 
-export async function creer({ profil, dureeMinutes }) {
+export async function creer({ profil, dureeMinutes, mode = 'normal' }) {
   const niveaux = await niveauxDe(profil.id);
-  const seance = creerSeance({ profil, niveaux, dureeMinutes });
+  const seance = creerSeance({ profil, niveaux, dureeMinutes, mode });
   const sablier = creerSablier({ dureeMinutes, restant: seance.restant });
 
   const sortie = el('button', {
@@ -51,7 +51,26 @@ export async function creer({ profil, dureeMinutes }) {
     definir: (type, valeur) => seance.definirNiveau(type, valeur)
   });
 
-  bandeau.poser(sablier.element, roue, boutonSilence(), sortie);
+  // En mode test, un bouton pour passer sans attendre la fin de l'activité.
+  const suivant = seance.test ? el('button', {
+    class: 'bouton', type: 'button',
+    'aria-label': 'Activité suivante',
+    style: { width: 'var(--touche-min)', padding: '0', fontSize: '20px', flex: '0 0 auto' }
+  }, '⏭') : null;
+  if (suivant) suivant.addEventListener('pointerdown', () => { anim.appui(suivant); suivante(); });
+
+  const etiquetteTest = seance.test ? el('span', {
+    style: {
+      fontSize: '12px', letterSpacing: '.08em', textTransform: 'uppercase',
+      color: 'var(--u-accent)', fontWeight: '800', flex: '0 0 auto'
+    }
+  }, 'test') : null;
+
+  bandeau.poser(
+    etiquetteTest,
+    seance.test ? el('div', { style: { flex: '1' } }) : sablier.element,
+    roue, suivant, boutonSilence(), sortie
+  );
 
   const aire = el('div', {
     style: { flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column' }
@@ -84,36 +103,44 @@ export async function creer({ profil, dureeMinutes }) {
     if (profil.age < 7) audio.parler(meta.nom);
     audio.son('transition');
 
-    await carton.animate(
+    // attendreFin plutôt que .finished : si l'app passe en arrière-plan
+    // pendant le carton, l'animation se met en pause et l'attente ne se
+    // dénouerait jamais — la séance resterait bloquée sur l'annonce.
+    await anim.attendreFin(carton.animate(
       [{ opacity: 0, transform: 'scale(.88)' },
        { opacity: 1, transform: 'scale(1)', offset: .25 },
        { opacity: 1, transform: 'scale(1)', offset: .75 },
        { opacity: 0, transform: 'scale(1.06)' }],
       { duration: 1300, easing: 'ease-in-out', fill: 'both' }
-    ).finished.catch(() => {});
+    ));
 
     carton.remove();
   }
 
   /* ---- Enchaînement --------------------------------------------------- */
 
+  let bascule = false;
+
   async function suivante() {
-    if (close) return;
+    // Le bouton « suivant » du mode test peut arriver pendant le carton
+    // d'annonce : sans ce verrou, deux activités se montent l'une sur l'autre.
+    if (close || bascule) return;
+    bascule = true;
 
     if (demonterActivite) { try { demonterActivite(); } catch { /* ignoré */ } }
     demonterActivite = null;
     aire.replaceChildren();
 
     const meta = seance.prochaine();
-    if (!meta) { terminer(); return; }
+    if (!meta) { bascule = false; terminer(); return; }
 
     const module = registre.module(meta.id);
-    if (!module) { terminer(); return; }
+    if (!module) { bascule = false; terminer(); return; }
 
     metaCourante = meta;
 
     await annoncer(meta);
-    if (close) return;
+    if (close) { bascule = false; return; }
 
     const exercice = module.generer(seance.niveauDe(meta));
     const vue = el('div', {
@@ -129,6 +156,9 @@ export async function creer({ profil, dureeMinutes }) {
       // Une fonction, pas une valeur : l'activité relit le niveau à chaque
       // question, donc la roue de réglage agit sans quitter la séance.
       niveau: () => seance.niveauDuType(meta.type),
+      // La durée est décidée par la séance, pas par l'activité : c'est ce
+      // point unique qui rend le mode test possible.
+      duree: seance.dureeActivite(meta),
       profil,
       surFin(resultat = {}) {
         if (rendu || close) return;
@@ -140,6 +170,8 @@ export async function creer({ profil, dureeMinutes }) {
         suivante();
       }
     });
+
+    bascule = false;
   }
 
   async function terminer() {
@@ -160,7 +192,7 @@ export async function creer({ profil, dureeMinutes }) {
   return {
     element,
     apresMontage() {
-      sablier.demarrer();
+      if (!seance.test) sablier.demarrer();
       suivante();
     },
     demonter() {

@@ -85,6 +85,7 @@ export async function creer() {
       class: 'cascade',
       style: { display: 'flex', flexDirection: 'column', gap: '18px' }
     },
+      sectionTest(profils),
       await sectionSuivi(profils),
       await sectionReglages(profils),
       sectionSauvegarde()
@@ -130,6 +131,39 @@ export async function creer() {
     element,
     apresMontage() { montrerVerrou(); }
   };
+}
+
+/* ---- Mode test -------------------------------------------------------- */
+
+/**
+ * Enchaîne toutes les activités jouables par un enfant, dans l'ordre du
+ * catalogue, vingt secondes chacune, avec un bouton pour passer à la
+ * suivante. Rien n'est enregistré dans le suivi : c'est une planche
+ * d'essai, pas une séance.
+ */
+function sectionTest(profils) {
+  const boutons = profils.map((p) => {
+    const b = el('button', {
+      class: 'bouton', type: 'button',
+      style: { minHeight: '48px', padding: '0 18px', fontSize: '16px' }
+    }, `▶ ${p.prenom}`);
+
+    b.addEventListener('pointerdown', async () => {
+      anim.appui(b);
+      audio.son('juste');
+      await aller('seance', { profil: p, dureeMinutes: 10, mode: 'test' });
+    }, { once: true });
+
+    return b;
+  });
+
+  return bloc('Mode test', [
+    el('div', { class: 'carte', style: { display: 'grid', gap: '10px' } },
+      el('p', { style: { margin: '0', fontSize: '14px', color: 'var(--u-texte-doux)' } },
+        "Fait défiler toutes les activités de l’enfant, 20 secondes chacune. Le bouton ⏭ du bandeau passe à la suivante. Rien n’est compté dans le suivi."),
+      el('div', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap' } }, ...boutons)
+    )
+  ]);
 }
 
 /* ---- Suivi ------------------------------------------------------------ */

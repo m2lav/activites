@@ -296,7 +296,7 @@ export function monter(conteneur, exercice, ctx) {
   const debut = Date.now();
   const battement = setInterval(() => {
     if (fini) return;
-    const reste = exercice.duree ?? meta.duree * 1000;
+    const reste = ctx.duree ?? exercice.duree ?? meta.duree * 1000;
     const ecoule = Date.now() - debut;
 
     // Tic-tac uniquement sur les dernières secondes : un tic-tac continu

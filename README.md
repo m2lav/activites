@@ -64,14 +64,31 @@ modifier. Voir `etoiles.js` comme patron.
 | Activité | Axe | Catégorie | Âges | Paramètre piloté par le niveau |
 |---|---|---|---|---|
 | Calcul mental | calcul_mental | effort | 5-12 | opérations, plafond, retenue, jetons d'aide |
+| Les mots | lecture | effort | 5-10 | reconnaître → reconstituer avec image → sans image |
 | Suites logiques | logique | effort | 4-12 | formes → nombres → intrus |
 | Les paires | memoire | effort | 3-12 | 3 à 12 paires |
 | Combien ? | calcul_mental | effort | 3-6 | quantité jusqu'à 3 → 10 |
+| Ranger et associer | logique | effort | 3-7 | nombre d'éléments, taille puis silhouette |
+| Les nœuds marins | culture | effort | 7-12 | usages, puis étapes du nœud de chaise |
+| Repères d'histoire | culture | effort | 7-12 | repères simples → dates → chronologie |
 | Le labyrinthe | labyrinthe | détente | 3-12 | 5×5 à 17×17, impasses à partir du niveau 3 |
 | Les étoiles | adresse | détente | 3-12 | taille, durée de vie, cadence |
 
-Reste à écrire (lot 4, seconde passe) : lecture, tangram, nœuds marins,
-scoutisme, culture, tri et associations Montessori.
+Les trois activités de connaissances partagent un moteur commun
+(`connaissances.js`) : ajouter un thème, c'est écrire une banque de questions.
+
+Reste à écrire : **tangram** et **encastrement de formes** (glisser-déposer
+géométrique, qui mérite sa propre passe) et **scoutisme** — dont les signes de
+piste attendent une validation, le brief demandant de les traiter avec justesse.
+
+### Mode test
+
+**Espace parent → Mode test → un enfant.** Fait défiler toutes ses activités
+dans l'ordre du catalogue, 22 secondes chacune, avec ⏭ pour passer. Rien n'est
+enregistré dans le suivi.
+
+C'est la séance qui fixe la durée d'une activité (`seance.dureeActivite`), pas
+l'activité elle-même : sans ce point unique, rien ne serait raccourcissable.
 
 ### Les dix niveaux du calcul mental
 
