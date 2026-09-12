@@ -42,8 +42,19 @@ Créer un module dans `src/activities/` exposant `meta`, `generer(niveau)` et
 `src/activities/index.js`. Le moteur s'occupe du reste : rien d'autre à
 modifier. Voir `etoiles.js` comme patron.
 
-Le catalogue contient deux activités : **calcul mental** (effort, 5-12 ans) et
-**les étoiles** (détente, 3-12 ans). Le lot 4 ajoutera les autres.
+### Le catalogue
+
+| Activité | Axe | Catégorie | Âges | Paramètre piloté par le niveau |
+|---|---|---|---|---|
+| Calcul mental | calcul_mental | effort | 5-12 | opérations, plafond, retenue, jetons d'aide |
+| Suites logiques | logique | effort | 4-12 | formes → nombres → intrus |
+| Les paires | memoire | effort | 3-12 | 3 à 12 paires |
+| Combien ? | calcul_mental | effort | 3-6 | quantité jusqu'à 3 → 10 |
+| Le labyrinthe | labyrinthe | détente | 3-12 | 5×5 à 17×17, impasses à partir du niveau 3 |
+| Les étoiles | adresse | détente | 3-12 | taille, durée de vie, cadence |
+
+Reste à écrire (lot 4, seconde passe) : lecture, tangram, nœuds marins,
+scoutisme, culture, tri et associations Montessori.
 
 ### Les dix niveaux du calcul mental
 

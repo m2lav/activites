@@ -19,6 +19,10 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
   const debut = Date.now();
   const resultats = [];
   let derniere = null;
+  // Dernière activité vue dans chaque catégorie. Mémoriser seulement la
+  // précédente ne sert à rien : comme on alterne, elle est toujours de
+  // l'autre catégorie, donc jamais candidate.
+  const dernieresParCategorie = { effort: null, detente: null };
 
   const ecoule = () => Date.now() - debut;
   const restant = () => Math.max(0, dureeMs - ecoule());
@@ -44,8 +48,10 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
 
     // On vise la catégorie opposée à la précédente, puis on se rabat.
     const voulue = derniere?.categorie === 'effort' ? 'detente' : 'effort';
+    const evitee = dernieresParCategorie[voulue];
+
     const paliers = [
-      jouables.filter((m) => m.categorie === voulue && m.id !== derniere?.id),
+      jouables.filter((m) => m.categorie === voulue && m.id !== evitee),
       jouables.filter((m) => m.categorie === voulue),
       jouables.filter((m) => m.id !== derniere?.id),
       jouables
@@ -54,6 +60,7 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
     const meta = choix[Math.floor(Math.random() * choix.length)];
 
     derniere = meta;
+    dernieresParCategorie[meta.categorie] = meta.id;
     return meta;
   }
 

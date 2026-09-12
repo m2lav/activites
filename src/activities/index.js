@@ -34,9 +34,13 @@
    ========================================================================= */
 
 import * as etoiles from './etoiles.js';
+import * as labyrinthe from './labyrinthe.js';
+import * as memoire from './memoire.js';
+import * as suites from './suites.js';
+import * as quantites from './quantites.js';
 import * as calculMental from './calcul-mental.js';
 
-export const CATALOGUE = [calculMental, etoiles];
+export const CATALOGUE = [calculMental, suites, memoire, quantites, labyrinthe, etoiles];
 
 /** Activités jouables par un enfant de cet âge. */
 export function pourAge(age) {
