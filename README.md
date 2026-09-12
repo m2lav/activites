@@ -1,4 +1,4 @@
-# Les activités — lots 1 et 2
+# Les activités — lots 1 à 3
 
 Application web d'activités éducatives et de récréations, pour trois enfants
 d'une même famille. Aucun serveur, aucun compte, aucune donnée qui sort de
@@ -22,6 +22,7 @@ l'appareil.
 | Moteur de séance | `src/core/session.js` | Enchaînement effort / détente, temps imparti, bilan |
 | Sablier | `src/ui/sablier.js` | Un segment par minute, visible en permanence |
 | Pavé numérique | `src/ui/pave-numerique.js` | Dix touches dessinées, jamais le clavier iOS |
+| Roue de difficulté | `src/ui/reglage-difficulte.js` | Appui long pendant la séance, effet à l'exercice suivant |
 | Activités | `src/activities/` | Registre + contrat commun à toutes les activités |
 
 Parcours complet : démarrage → première configuration → choix du profil →
@@ -41,8 +42,25 @@ Créer un module dans `src/activities/` exposant `meta`, `generer(niveau)` et
 `src/activities/index.js`. Le moteur s'occupe du reste : rien d'autre à
 modifier. Voir `etoiles.js` comme patron.
 
-Le catalogue ne contient pour l'instant qu'une activité (les étoiles), le temps
-que les lots 3 et 4 le remplissent.
+Le catalogue contient deux activités : **calcul mental** (effort, 5-12 ans) et
+**les étoiles** (détente, 3-12 ans). Le lot 4 ajoutera les autres.
+
+### Les dix niveaux du calcul mental
+
+Décrits dans `PALIERS`, en tête de `calcul-mental.js` — c'est le seul endroit à
+toucher pour réétalonner la progression :
+
+| Niveau | Opérations | Plafond | Retenue | Jetons à compter |
+|---|---|---|---|---|
+| 1-2 | + | 5 puis 10 | non | oui |
+| 3-4 | + − | 10 puis 20 | non | oui |
+| 5 | + − | 20 | non | non |
+| 6 | + − | 20 | oui | non |
+| 7-8 | + − × | 50 puis 100 | oui | non |
+| 9-10 | + − × | 100 puis 200 | oui | non |
+
+Générateur vérifié sur 20 000 tirages : aucun résultat négatif, aucun
+dépassement de plafond, aucune retenue là où elle est exclue.
 
 ## Tester sur le PC
 
@@ -92,5 +110,6 @@ iOS, lui seul sait installer une application). Bouton Partager → faire défile
 
 ## Reste à faire
 
-Lot 3 : calcul mental de bout en bout, roue de difficulté en appui long pendant
-la séance. Lot 4 : le reste du catalogue. Lot 5 : assets définitifs et finition.
+Lot 4 : le reste du catalogue (lecture, logique, labyrinthes, tangram, mémoire,
+nœuds, scoutisme, Montessori). Lot 5 : assets définitifs, déclinaison par
+univers, musiques et finition.

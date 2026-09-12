@@ -15,16 +15,28 @@
 
      export function generer(niveau)                  // 1-10 → un exercice
      export function monter(conteneur, exercice, ctx) // → fonction de démontage
+     export function apercu(niveau)                   // facultatif : un exemple
 
-   `ctx` contient au minimum { surFin } que l'activité appelle à la fin avec
-   { reussites, erreurs }. Le moteur s'occupe du reste.
+   `ctx` contient :
+     surFin({reussites, erreurs})  à appeler quand l'activité se termine
+     niveau()                      le niveau courant, relu à chaque question —
+                                   c'est ce qui permet à la roue de réglage de
+                                   prendre effet sans quitter la séance
+     profil                        l'enfant en cours
+
+   Une activité qui enchaîne plusieurs questions ne les tire donc pas dans
+   `generer` : elle les produit une par une avec `ctx.niveau()`.
+
+   `apercu(niveau)` sert à la roue de réglage : elle montre à quoi ressemble
+   un niveau avant de l'appliquer.
 
    Ajouter une activité = créer le module et l'ajouter à CATALOGUE.
    ========================================================================= */
 
 import * as etoiles from './etoiles.js';
+import * as calculMental from './calcul-mental.js';
 
-export const CATALOGUE = [etoiles];
+export const CATALOGUE = [calculMental, etoiles];
 
 /** Activités jouables par un enfant de cet âge. */
 export function pourAge(age) {

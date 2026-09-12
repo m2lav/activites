@@ -182,6 +182,21 @@ input, textarea {
   padding: 22px 26px;
 }
 
+/* ---- Voile de dialogue ----------------------------------------------- */
+
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--marge-haut) var(--marge-h) var(--marge-bas);
+  background: color-mix(in srgb, #000 62%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 /* ---- Bandeau de rapport d'erreur ------------------------------------- */
 
 .rapport {

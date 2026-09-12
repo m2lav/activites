@@ -61,6 +61,22 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
     return niveaux?.[meta.type] ?? 5;
   }
 
+  function niveauDuType(type) {
+    return niveaux?.[type] ?? 5;
+  }
+
+  /**
+   * Change un niveau pendant la séance (roue de réglage).
+   * La valeur est écrite en base tout de suite : si l'app est fermée juste
+   * après, le réglage est conservé pour la prochaine fois.
+   */
+  async function definirNiveau(type, valeur) {
+    const v = Math.min(10, Math.max(1, Math.round(valeur)));
+    if (niveaux) niveaux[type] = v;
+    await store.definirNiveau(profil.id, type, v).catch(() => {});
+    return v;
+  }
+
   function enregistrer(meta, { reussites = 0, erreurs = 0, temps = 0 }) {
     resultats.push({
       id: meta.id,
@@ -104,7 +120,9 @@ export function creerSeance({ profil, niveaux, dureeMinutes }) {
 
   return {
     profil, dureeMs, dureeMinutes,
-    ecoule, restant, prochaine, niveauDe, enregistrer, bilan, sauvegarder
+    ecoule, restant, prochaine,
+    niveauDe, niveauDuType, definirNiveau,
+    enregistrer, bilan, sauvegarder
   };
 }
 

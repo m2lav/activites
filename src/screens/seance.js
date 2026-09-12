@@ -18,6 +18,7 @@ import * as registre from '../activities/index.js';
 import { creerSeance, niveauxDe } from '../core/session.js';
 import { creerSablier } from '../ui/sablier.js';
 import { boutonSilence, appuiLong } from '../ui/controles.js';
+import { creerRoue } from '../ui/reglage-difficulte.js';
 import * as bandeau from '../ui/bandeau.js';
 import { aller, reinitialiserPile } from '../core/router.js';
 
@@ -34,7 +35,23 @@ export async function creer({ profil, dureeMinutes }) {
   // Appui long : un enfant ne met pas fin à la séance par mégarde.
   appuiLong(sortie, () => terminer());
 
-  bandeau.poser(sablier.element, boutonSilence(), sortie);
+  let metaCourante = null;
+
+  const roue = creerRoue({
+    contexte() {
+      if (!metaCourante) return null;
+      const module = registre.module(metaCourante.id);
+      return {
+        type: metaCourante.type,
+        libelle: metaCourante.nom,
+        niveau: seance.niveauDuType(metaCourante.type),
+        apercu: module?.apercu ? (n) => module.apercu(n) : null
+      };
+    },
+    definir: (type, valeur) => seance.definirNiveau(type, valeur)
+  });
+
+  bandeau.poser(sablier.element, roue, boutonSilence(), sortie);
 
   const aire = el('div', {
     style: { flex: '1', minHeight: '0', display: 'flex', flexDirection: 'column' }
@@ -93,6 +110,8 @@ export async function creer({ profil, dureeMinutes }) {
     const module = registre.module(meta.id);
     if (!module) { terminer(); return; }
 
+    metaCourante = meta;
+
     await annoncer(meta);
     if (close) return;
 
@@ -107,7 +126,9 @@ export async function creer({ profil, dureeMinutes }) {
     let rendu = false;
 
     demonterActivite = module.monter(vue, exercice, {
-      niveau: seance.niveauDe(meta),
+      // Une fonction, pas une valeur : l'activité relit le niveau à chaque
+      // question, donc la roue de réglage agit sans quitter la séance.
+      niveau: () => seance.niveauDuType(meta.type),
       profil,
       surFin(resultat = {}) {
         if (rendu || close) return;
@@ -128,6 +149,7 @@ export async function creer({ profil, dureeMinutes }) {
     sablier.arreter();
     if (demonterActivite) { try { demonterActivite(); } catch { /* ignoré */ } }
     demonterActivite = null;
+    metaCourante = null;
     bandeau.vider();
 
     const bilan = await seance.sauvegarder();
