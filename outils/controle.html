@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Contrôle des activités</title>
+<link rel="stylesheet" href="../styles/base.css">
+<style>
+  body { overflow: auto; }
+  .page { padding: 24px; max-width: 760px; margin: 0 auto; font-family: system-ui, sans-serif; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p.intro { color: var(--u-texte-doux); margin: 0 0 20px; font-size: 15px; }
+  .ligne { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px;
+           border-radius: 8px; margin-bottom: 4px; font-size: 15px;
+           background: color-mix(in srgb, var(--u-carte) 45%, transparent); }
+  .ligne b { min-width: 190px; }
+  .detail { color: var(--u-texte-doux); font-size: 13px; font-family: ui-monospace, monospace; }
+  .ko { background: #6b1d1d; color: #ffecec; }
+  .bilan { margin: 20px 0; padding: 14px 18px; border-radius: 10px; font-weight: 700; }
+  .bilan.ok { background: #1d5b2c; color: #e8ffef; }
+  .bilan.ko { background: #6b1d1d; color: #ffecec; }
+  #scene-cachee { position: fixed; left: -10000px; top: 0; width: 900px; height: 600px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Contrôle des activités</h1>
+  <p class="intro">
+    Monte chaque activité du catalogue pour de vrai, à trois niveaux, et signale
+    la moindre erreur. À lancer avant chaque livraison : l'analyse de syntaxe
+    seule ne détecte pas un import manquant, elle ne fait que lire la grammaire.
+  </p>
+  <div id="bilan"></div>
+  <div id="resultats"></div>
+</div>
+
+<div id="scene-cachee"></div>
+
+<script type="module">
+import * as registre from '../src/activities/index.js';
+import * as audio from '../src/core/audio.js';
+
+const resultats = document.getElementById('resultats');
+const bilan = document.getElementById('bilan');
+const scene = document.getElementById('scene-cachee');
+
+audio.silence(true);           // aucun son pendant le contrôle
+
+const erreurs = [];
+
+function ligne(nom, ok, detail) {
+  const d = document.createElement('div');
+  d.className = 'ligne' + (ok ? '' : ' ko');
+  d.innerHTML = `<span>${ok ? '✅' : '❌'}</span><b>${nom}</b><span class="detail">${detail}</span>`;
+  resultats.appendChild(d);
+}
+
+/** Monte une activité, la laisse vivre un instant, puis la démonte. */
+async function essayer(module, niveau) {
+  const hote = document.createElement('div');
+  hote.className = 'ecran';
+  scene.appendChild(hote);
+
+  let demonter = null;
+  try {
+    const exercice = module.generer(niveau);
+    demonter = module.monter(hote, exercice, {
+      niveau: () => niveau,
+      duree: 60_000,
+      profil: { id: 'controle', prenom: 'Test', age: 8 },
+      surFin: () => {}
+    });
+    await new Promise((r) => setTimeout(r, 90));
+    if (!hote.children.length) throw new Error('rien n’a été affiché');
+    if (module.apercu) module.apercu(niveau);
+  } finally {
+    try { demonter?.(); } catch (e) { throw e; }
+    hote.remove();
+  }
+}
+
+for (const module of registre.CATALOGUE) {
+  const meta = module.meta;
+  let souci = null;
+
+  if (!meta?.consigne) souci = 'consigne manquante dans meta';
+
+  for (const niveau of [1, 5, 10]) {
+    if (souci) break;
+    try {
+      await essayer(module, niveau);
+    } catch (e) {
+      souci = `niveau ${niveau} : ${e.message || e}`;
+    }
+  }
+
+  ligne(meta?.nom || '(sans nom)', !souci,
+    souci || `${meta.type} · ${meta.categorie} · ${meta.ages[0]}-${meta.ages[1]} ans`);
+  if (souci) erreurs.push(`${meta?.id} — ${souci}`);
+}
+
+bilan.className = 'bilan ' + (erreurs.length ? 'ko' : 'ok');
+bilan.textContent = erreurs.length
+  ? `${erreurs.length} activité(s) en défaut sur ${registre.CATALOGUE.length}`
+  : `Les ${registre.CATALOGUE.length} activités montent correctement.`;
+
+// Lisible depuis la console ou depuis un pilotage automatique.
+window.__controle = { total: registre.CATALOGUE.length, erreurs };
+</script>
+</body>
+</html>

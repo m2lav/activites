@@ -13,7 +13,10 @@ import { el } from '../ui/dom.js';
 import * as store from '../core/store.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
-import { UNIVERS, AMBIANCES, manifeste, palette, ambianceActive, definirAmbiance, universActif } from '../core/univers.js';
+import {
+  UNIVERS, AMBIANCES, manifeste, palette, appliquer,
+  ambianceActive, definirAmbiance, universActif
+} from '../core/univers.js';
 import { creerPave } from '../ui/pave-numerique.js';
 import { aller, retour } from '../core/router.js';
 import { vider as viderBandeau } from '../ui/bandeau.js';
@@ -151,6 +154,9 @@ function sectionTest(profils) {
     b.addEventListener('pointerdown', async () => {
       anim.appui(b);
       audio.son('juste');
+      // On bascule dans l'univers de l'enfant : sans ça le test se jouerait
+      // avec la mascotte et les couleurs d'un autre, ce qui fausse le jugement.
+      await appliquer(p.univers_prefere).catch(() => {});
       await aller('seance', { profil: p, dureeMinutes: 10, mode: 'test' });
     }, { once: true });
 

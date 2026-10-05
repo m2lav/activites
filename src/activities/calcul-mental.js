@@ -24,6 +24,7 @@ import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
 import * as retour from '../ui/retour.js';
 import { creerPave } from '../ui/pave-numerique.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'calcul-mental',

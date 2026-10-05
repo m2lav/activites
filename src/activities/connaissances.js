@@ -20,6 +20,7 @@ import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
 import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 /**
  * @param {object} o
