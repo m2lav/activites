@@ -95,6 +95,7 @@ const activite = creerActivite({
   nom: 'Repères d’histoire',
   ages: [7, 12],
   duree: 80,
+  consigne: "Des questions sur le temps d'avant.",
   banque,
   resume: (n) => (n <= 4 ? 'repères simples' : n >= 6 ? 'dates et chronologie' : 'dates')
 });

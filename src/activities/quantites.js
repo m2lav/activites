@@ -13,6 +13,8 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'quantites',
@@ -20,7 +22,8 @@ export const meta = {
   type: 'calcul_mental',
   categorie: 'effort',
   ages: [3, 6],
-  duree: 70
+  duree: 70,
+  consigne: "Compte, puis touche le bon chiffre."
 };
 
 const OBJETS = ['🍎', '🐞', '⭐', '🐟', '🌻', '🦕', '🚗', '🎈'];
@@ -80,6 +83,9 @@ export function monter(conteneur, exercice, ctx) {
 
   function nouvelle() {
     if (fini) return;
+    // Point de rupture : si le temps est écoulé, on conclut ICI, jamais au
+    // milieu d'un exercice commencé.
+    if (minuterie.doitFinir()) { terminer(); return; }
 
     const max = plafond(niveauCourant());
     const combien = hasard(1, max);
@@ -147,6 +153,7 @@ export function monter(conteneur, exercice, ctx) {
       reussites++;
       audio.son('recompense');
       anim.recompense(bouton);
+      retour.reussite(conteneur);
       attendre(nouvelle, 1100);
       return;
     }
@@ -154,6 +161,7 @@ export function monter(conteneur, exercice, ctx) {
     erreurs++;
     audio.son('presque');
     anim.nonNon(bouton);
+    retour.echec(conteneur, 'Regarde bien !');
 
     // Autocorrection : le chiffre choisi montre ce qu'il vaut réellement.
     jetons.replaceChildren(...Array.from({ length: n }, () => el('div', {
@@ -165,18 +173,17 @@ export function monter(conteneur, exercice, ctx) {
     anim.cascade(jetons.children, { decalage: 55, depart: 0 });
   }
 
-  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
-  const DUREE = ctx.duree ?? meta.duree * 1000;
-  const debut = Date.now();
-  const battement = setInterval(() => {
-    if (fini) return;
-    if (Date.now() - debut >= DUREE) terminer();
-  }, 500);
+  // Échéance douce : le temps écoulé ne coupe rien, il lève un drapeau que
+  // l'activité consulte à ses points de rupture naturels.
+  const minuterie = creerMinuterie({
+    duree: ctx.duree ?? meta.duree * 1000,
+    terminer: () => terminer()
+  });
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites, erreurs });
@@ -186,7 +193,7 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
   };

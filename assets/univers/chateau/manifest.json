@@ -6,6 +6,7 @@
     "texte": "-apple-system, system-ui, \"Segoe UI\", sans-serif"
   },
   "rayon": "32px",
+  "mascotte": "👸",
   "ambiances": {
     "nuit": {
       "fond": "#2a1f33",

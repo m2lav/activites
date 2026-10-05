@@ -32,9 +32,29 @@ un code, accessible par **appui long sur la roue dentée** de l'écran d'accueil
 
 ### La règle qui structure tout
 
-Le temps restant n'est consulté **qu'entre deux activités** (`seance.prochaine()`).
-Quand il est écoulé, l'activité en cours va à son terme, puis la séance
-s'achève. Aucun autre endroit du code ne doit décider d'interrompre.
+**On ne coupe jamais un enfant au milieu de ce qu'il fait.** Elle s'applique à
+deux niveaux, et c'est le second qui a manqué à la première version :
+
+- **Entre activités** — la séance se compte en activités, pas en minutes
+  (`seance.nombreActivites`). Une case du sablier = une activité.
+- **Dans une activité** — le budget écoulé ne coupe rien : il lève un drapeau
+  que l'activité consulte à son prochain **point de rupture naturel**
+  (labyrinthe résolu, question répondue, plateau terminé). Voir
+  `activities/minuterie.js`. Un labyrinthe qui disparaît à deux cases de la
+  sortie, c'est le défaut qu'on ne veut plus.
+
+### Retour à l'enfant
+
+`ui/retour.js` — visage vert qui sourit sur réussite, visage orange sur erreur,
+en grand et au centre. Vert et orange sont **hors des palettes d'univers** :
+« bon » et « pas tout à fait » doivent se reconnaître à l'identique partout.
+Orange et jamais rouge.
+
+### Consigne
+
+Avant chaque activité, le personnage de l'univers (`mascotte` dans le
+manifeste) apparaît avec une bulle de BD portant `meta.consigne` — quelques
+mots, lus à voix haute.
 
 ### Ambiances — phase d'essai
 

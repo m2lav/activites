@@ -1,45 +1,48 @@
 /* =========================================================================
    Sablier de séance.
 
-   Affiché en permanence en haut de l'écran. Il doit être lisible par un
-   enfant de 4 ans : d'où des segments — un par minute — qui s'éteignent un
-   à un, plutôt qu'une barre lisse ou des chiffres. On voit « il reste trois
-   morceaux » sans savoir lire l'heure.
+   Affiché en permanence en haut de l'écran. **Une case = une activité**, pas
+   une minute : un enfant de quatre ans ne sait pas ce que vaut une minute,
+   mais il sait voir qu'il reste trois jeux. La case en cours se vide pendant
+   que l'activité se joue, les cases finies restent éteintes.
 
-   Quand le temps est écoulé, il n'interrompt rien : il annonce simplement
-   que c'est la dernière activité. La coupure est interdite (voir
-   core/session.js).
+   Il n'interrompt jamais rien. Quand une case est vide, l'activité va à son
+   terme naturel — c'est la minuterie de l'activité qui décide, pas le
+   sablier (voir activities/minuterie.js).
    ========================================================================= */
 
 import { el } from './dom.js';
 
-const MINUTE = 60_000;
-
-export function creerSablier({ dureeMinutes, restant }) {
-  const total = dureeMinutes * MINUTE;
+/**
+ * @param {object} o
+ * @param {number} o.nombre  nombre d'activités de la séance
+ * @param {() => ({indice:number, part:number})} o.progression
+ *        indice de l'activité en cours, et part écoulée de son budget (0 à 1)
+ */
+export function creerSablier({ nombre, progression }) {
   const segments = [];
 
   const piste = el('div', {
     style: {
-      display: 'flex', gap: '4px', flex: '1', minWidth: '0',
-      height: '18px', alignItems: 'stretch'
+      display: 'flex', gap: '5px', flex: '1', minWidth: '0',
+      height: '20px', alignItems: 'stretch'
     }
   });
 
-  for (let i = 0; i < dureeMinutes; i++) {
+  for (let i = 0; i < nombre; i++) {
     const remplissage = el('div', {
       style: {
         height: '100%', width: '100%',
         background: 'var(--u-secondaire)',
         borderRadius: '999px',
         transformOrigin: 'left center',
-        transition: 'background-color .5s ease'
+        transition: 'background-color .4s ease'
       }
     });
     const segment = el('div', {
       style: {
         flex: '1', minWidth: '0', height: '100%',
-        background: 'color-mix(in srgb, var(--u-texte) 12%, transparent)',
+        background: 'color-mix(in srgb, var(--u-texte) 14%, transparent)',
         borderRadius: '999px', overflow: 'hidden'
       }
     }, remplissage);
@@ -51,8 +54,8 @@ export function creerSablier({ dureeMinutes, restant }) {
 
   const libelle = el('span', {
     style: {
-      fontFamily: 'var(--u-police-titre)', fontWeight: '700',
-      fontSize: '15px', minWidth: '68px', textAlign: 'right',
+      fontFamily: 'var(--u-police-titre)', fontWeight: '800',
+      fontSize: '15px', minWidth: '52px', textAlign: 'right',
       color: 'var(--u-texte-doux)', whiteSpace: 'nowrap'
     }
   }, '');
@@ -62,39 +65,31 @@ export function creerSablier({ dureeMinutes, restant }) {
   }, icone, piste, libelle);
 
   let minuteur = null;
-  let epuiseAnnonce = false;
+  let derniereAnnonce = -1;
 
   function rafraichir() {
-    const reste = restant();
-    const passe = total - reste;
+    const { indice, part } = progression();
 
     for (let i = 0; i < segments.length; i++) {
-      const part = Math.min(MINUTE, Math.max(0, (i + 1) * MINUTE - passe)) / MINUTE;
-      segments[i].style.transform = `scaleX(${part})`;
+      const reste = i < indice ? 0 : i > indice ? 1 : Math.max(0, 1 - part);
+      segments[i].style.transform = `scaleX(${reste})`;
+      segments[i].style.backgroundColor = (i === indice && part >= 1)
+        ? 'var(--u-accent)'
+        : 'var(--u-secondaire)';
     }
 
-    const derniereMinute = reste > 0 && reste <= MINUTE;
-    const couleur = reste <= 0 ? 'var(--u-accent)'
-      : derniereMinute ? 'var(--u-accent)' : 'var(--u-secondaire)';
-    for (const s of segments) s.style.backgroundColor = couleur;
+    libelle.textContent = `${Math.min(indice + 1, nombre)} / ${nombre}`;
 
-    if (reste <= 0) {
-      libelle.textContent = 'dernière !';
-      libelle.style.color = 'var(--u-accent)';
-      if (!epuiseAnnonce) {
-        epuiseAnnonce = true;
+    // Le sablier se retourne quand on entame la dernière activité.
+    if (indice !== derniereAnnonce) {
+      derniereAnnonce = indice;
+      if (indice === nombre - 1) {
         icone.textContent = '⌛';
         icone.animate(
           [{ transform: 'rotate(0)' }, { transform: 'rotate(180deg)' }],
           { duration: 700, easing: 'cubic-bezier(.34,1.56,.64,1)', fill: 'both' }
         );
       }
-    } else if (reste < MINUTE) {
-      libelle.textContent = `${Math.ceil(reste / 1000)} s`;
-      libelle.style.color = 'var(--u-accent)';
-    } else {
-      libelle.textContent = `${Math.ceil(reste / MINUTE)} min`;
-      libelle.style.color = 'var(--u-texte-doux)';
     }
   }
 
@@ -102,8 +97,6 @@ export function creerSablier({ dureeMinutes, restant }) {
     element,
     demarrer() {
       rafraichir();
-      // 250 ms : assez fin pour que les secondes défilent sans à-coup,
-      // assez lâche pour ne rien coûter à la batterie.
       minuteur = setInterval(rafraichir, 250);
     },
     arreter() {

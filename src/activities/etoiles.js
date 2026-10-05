@@ -19,7 +19,8 @@ export const meta = {
   type: 'adresse',
   categorie: 'detente',
   ages: [3, 12],
-  duree: 50
+  duree: 50,
+  consigne: "Touche les étoiles avant qu'elles s'éteignent."
 };
 
 export function generer(niveau) {

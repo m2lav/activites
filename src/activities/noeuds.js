@@ -80,6 +80,7 @@ const activite = creerActivite({
   nom: 'Les nœuds marins',
   ages: [7, 12],
   duree: 80,
+  consigne: "Des questions sur les nœuds marins.",
   banque,
   resume: (n) => (n >= 4 ? 'usages + étapes du nœud de chaise' : 'à quoi sert chaque nœud')
 });

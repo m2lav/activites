@@ -22,6 +22,7 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
 import { creerPave } from '../ui/pave-numerique.js';
 
 export const meta = {
@@ -30,7 +31,8 @@ export const meta = {
   type: 'calcul_mental',
   categorie: 'effort',
   ages: [5, 12],
-  duree: 90
+  duree: 90,
+  consigne: "Calcule, puis tape ta réponse."
 };
 
 /* ---- Les dix niveaux --------------------------------------------------- */
@@ -248,6 +250,9 @@ export function monter(conteneur, exercice, ctx) {
 
   function nouvelle() {
     if (fini) return;
+    // Point de rupture : si le temps est écoulé, on conclut ICI, jamais au
+    // milieu d'un exercice commencé.
+    if (minuterie.doitFinir()) { terminer(); return; }
     // Le niveau est relu ici : un réglage fait en cours de séance prend
     // effet maintenant, et jamais au milieu d'une question.
     q = question(niveauCourant());
@@ -269,6 +274,7 @@ export function monter(conteneur, exercice, ctx) {
       message.textContent = '';
       audio.son('juste');
       anim.recompense(operation);
+      retour.reussite(conteneur);
       attendre(nouvelle, 750);
       return;
     }
@@ -279,38 +285,42 @@ export function monter(conteneur, exercice, ctx) {
     pave.vider();
 
     if (essais === 1) {
-      message.textContent = 'Presque ! Essaie encore.';
+      message.textContent = '';
+      retour.echec(conteneur, 'Presque !');
     } else if (essais === 2) {
       message.textContent = indice(q);
+      retour.echec(conteneur, 'Un indice');
     } else {
       manquees++;
       message.replaceChildren(el('span', { style: { color: 'var(--u-accent)' } },
         `C'était ${q.reponse}. On continue !`));
       dessiner(String(q.reponse));
+      retour.reponseMontree(conteneur, 'C’était ' + q.reponse);
       attendre(nouvelle, 2000);
     }
   }
 
   /* -- Durée de l'activité -- */
 
-  const debut = Date.now();
-  const battement = setInterval(() => {
+  const DUREE = ctx.duree ?? exercice.duree ?? meta.duree * 1000;
+
+  // Échéance douce : jamais au milieu d'une opération en cours de réponse.
+  const minuterie = creerMinuterie({ duree: DUREE, terminer: () => terminer() });
+
+  // Tic-tac sur les dernières secondes seulement : un tic-tac continu pendant
+  // une minute et demie n'aide personne à réfléchir.
+  const tictac = setInterval(() => {
     if (fini) return;
-    const reste = ctx.duree ?? exercice.duree ?? meta.duree * 1000;
-    const ecoule = Date.now() - debut;
-
-    // Tic-tac uniquement sur les dernières secondes : un tic-tac continu
-    // pendant 90 secondes n'aide personne à réfléchir.
-    if (reste - ecoule <= 10_000 && reste - ecoule > 0) audio.son('tic');
-
-    if (ecoule >= reste) terminer();
+    const reste = DUREE - minuterie.ecoule();
+    if (reste <= 10_000 && reste > 0) audio.son('tic');
   }, 1000);
-  minuteurs.add(battement);
+  minuteurs.add(tictac);
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
+    clearInterval(tictac);
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites: resolues, erreurs: manquees });
@@ -320,7 +330,8 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
+    clearInterval(tictac);
     for (const id of minuteurs) { clearTimeout(id); clearInterval(id); }
     minuteurs.clear();
   };

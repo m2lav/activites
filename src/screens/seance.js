@@ -20,12 +20,27 @@ import { creerSablier } from '../ui/sablier.js';
 import { boutonSilence, appuiLong } from '../ui/controles.js';
 import { creerRoue } from '../ui/reglage-difficulte.js';
 import * as bandeau from '../ui/bandeau.js';
+import * as univers from '../core/univers.js';
 import { aller, reinitialiserPile } from '../core/router.js';
 
 export async function creer({ profil, dureeMinutes, mode = 'normal' }) {
   const niveaux = await niveauxDe(profil.id);
   const seance = creerSeance({ profil, niveaux, dureeMinutes, mode });
-  const sablier = creerSablier({ dureeMinutes, restant: seance.restant });
+
+  // Le personnage qui donne les consignes vient de l'univers de l'enfant.
+  const manifesteUnivers = await univers.manifeste(univers.universActif() || 'mer')
+    .catch(() => null);
+  const mascotte = manifesteUnivers?.mascotte || '🙂';
+
+  // Progression lue par le sablier : quelle activité, et où elle en est.
+  let debutActivite = 0;
+  let budgetActivite = seance.dureeActivite();
+  const progression = () => ({
+    indice: seance.indice(),
+    part: debutActivite ? Math.min(1, (Date.now() - debutActivite) / budgetActivite) : 0
+  });
+
+  const sablier = creerSablier({ nombre: seance.nombreActivites, progression });
 
   const sortie = el('button', {
     class: 'bouton', type: 'button',
@@ -83,24 +98,45 @@ export async function creer({ profil, dureeMinutes, mode = 'normal' }) {
 
   /* ---- Carton d'annonce ---------------------------------------------- */
 
+  /**
+   * Carton de consigne : le personnage de l'univers, et une bulle de BD qui
+   * dit en quelques mots ce qu'il faut faire. Un enfant qui ne lit pas voit
+   * la scène et entend la phrase ; il n'a pas à deviner le jeu en le jouant.
+   */
   async function annoncer(meta) {
+    const consigne = meta.consigne || meta.nom;
+
     const carton = el('div', {
       style: {
         position: 'absolute', inset: '0', display: 'flex',
         flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '10px', zIndex: '5'
+        gap: 'clamp(10px, 2vh, 22px)', zIndex: '5'
       }
     },
       el('div', {
-        class: 'titre',
-        style: { textAlign: 'center', margin: '0' }
+        style: {
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 'clamp(12px, 2vw, 24px)', flexWrap: 'wrap', padding: '0 16px'
+        }
+      },
+        el('span', {
+          style: { fontSize: 'clamp(62px, 11vw, 120px)', lineHeight: '1' }
+        }, mascotte),
+        el('div', { class: 'bulle' }, consigne)
+      ),
+      el('div', {
+        style: {
+          fontSize: '15px', letterSpacing: '.08em', textTransform: 'uppercase',
+          color: 'var(--u-texte-doux)', fontWeight: '700'
+        }
       }, meta.nom)
     );
     element.style.position = 'relative';
     element.appendChild(carton);
 
-    // Les plus jeunes ne lisent pas : on énonce le nom de l'activité.
-    if (profil.age < 7) audio.parler(meta.nom);
+    // La consigne est lue à voix haute pour tout le monde : même Gaspard
+    // gagne à l'entendre plutôt qu'à la lire en vitesse.
+    audio.parler(consigne);
     audio.son('transition');
 
     // attendreFin plutôt que .finished : si l'app passe en arrière-plan
@@ -111,7 +147,7 @@ export async function creer({ profil, dureeMinutes, mode = 'normal' }) {
        { opacity: 1, transform: 'scale(1)', offset: .25 },
        { opacity: 1, transform: 'scale(1)', offset: .75 },
        { opacity: 0, transform: 'scale(1.06)' }],
-      { duration: 1300, easing: 'ease-in-out', fill: 'both' }
+      { duration: 2200, easing: 'ease-in-out', fill: 'both' }
     ));
 
     carton.remove();
@@ -150,15 +186,17 @@ export async function creer({ profil, dureeMinutes, mode = 'normal' }) {
     anim.apparition(vue);
 
     const t0 = Date.now();
+    budgetActivite = seance.dureeActivite();
+    debutActivite = t0;
     let rendu = false;
 
     demonterActivite = module.monter(vue, exercice, {
       // Une fonction, pas une valeur : l'activité relit le niveau à chaque
       // question, donc la roue de réglage agit sans quitter la séance.
       niveau: () => seance.niveauDuType(meta.type),
-      // La durée est décidée par la séance, pas par l'activité : c'est ce
-      // point unique qui rend le mode test possible.
-      duree: seance.dureeActivite(meta),
+      // La durée est décidée par la séance, pas par l'activité. C'est une
+      // échéance douce : l'activité s'arrête au point de rupture suivant.
+      duree: budgetActivite,
       profil,
       surFin(resultat = {}) {
         if (rendu || close) return;

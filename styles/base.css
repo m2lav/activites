@@ -22,6 +22,16 @@
      les primaires étant toutes des teintes saturées de valeur moyenne. */
   --u-sur-primaire: #ffffff;
 
+  /*
+     Vert de réussite et orange d'erreur : volontairement HORS des palettes
+     d'univers. « Bon » et « pas tout à fait » doivent se reconnaître d'un
+     coup d'œil, à l'identique dans les six univers et les trois ambiances —
+     un enfant de quatre ans n'apprend pas six codes couleur.
+     Orange et jamais rouge : on signale, on ne sanctionne pas.
+  */
+  --u-vert-ok: #2fa84f;
+  --u-orange-presque: #e08a1e;
+
   /* Marges de sécurité : encoche, coins arrondis, barre d'accueil. */
   --marge-h: max(20px, env(safe-area-inset-left), env(safe-area-inset-right));
   --marge-haut: max(16px, env(safe-area-inset-top));
@@ -184,6 +194,43 @@ input, textarea {
   border: 2px solid color-mix(in srgb, var(--u-texte) 10%, transparent);
   border-radius: var(--u-rayon);
   padding: 22px 26px;
+}
+
+/* ---- Bulle de consigne ------------------------------------------------ */
+
+/*
+   La consigne est portée par un personnage de l'univers et une bulle de BD.
+   C'est ce qui permet à Térence de savoir quoi faire sans lire : il voit le
+   pompier, il entend la phrase, il reconnaît la situation.
+*/
+.bulle {
+  position: relative;
+  background: var(--u-carte);
+  border: 3px solid color-mix(in srgb, var(--u-texte) 16%, transparent);
+  border-radius: 22px;
+  padding: 18px 24px;
+  max-width: 22ch;
+  font-family: var(--u-police-titre);
+  font-weight: 700;
+  font-size: clamp(19px, 2.8vw, 30px);
+  line-height: 1.25;
+}
+
+/* La queue de la bulle, pointant vers le personnage (à sa gauche). */
+.bulle::after,
+.bulle::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  border: 9px solid transparent;
+  border-right-color: color-mix(in srgb, var(--u-texte) 16%, transparent);
+  transform: translateY(-50%);
+}
+
+.bulle::after {
+  left: -13px;
+  border-right-color: var(--u-carte);
 }
 
 /* ---- Voile de dialogue ----------------------------------------------- */

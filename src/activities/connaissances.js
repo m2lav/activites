@@ -19,6 +19,7 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
 
 /**
  * @param {object} o
@@ -28,9 +29,10 @@ import * as anim from '../core/anim.js';
  * @param {(niveau:number)=>string} [o.resume] texte de l'aperçu de la roue
  */
 export function creerActivite({
-  id, nom, ages, duree = 80, type = 'culture', categorie = 'effort', banque, resume
+  id, nom, ages, duree = 80, type = 'culture', categorie = 'effort',
+  consigne, banque, resume
 }) {
-  const meta = { id, nom, type, categorie, ages, duree };
+  const meta = { id, nom, type, categorie, ages, duree, consigne };
 
   const apercu = (niveau) => (resume ? resume(niveau) : null);
   const generer = (niveau) => ({ niveau: Math.min(10, Math.max(1, Math.round(niveau))) });
@@ -159,6 +161,7 @@ export function creerActivite({
       reussites++;
       audio.son('juste');
       anim.recompense(cible);
+      retour.reussite(conteneur);
       message.textContent = '';
       attendre(nouvelle, 1000);
     }
@@ -167,14 +170,17 @@ export function creerActivite({
       essais++;
       audio.son('presque');
       anim.nonNon(cible);
-      if (essais === 1) { message.textContent = 'Pas tout à fait. Réessaie.'; return; }
+      if (essais === 1) { retour.echec(conteneur, 'Pas tout à fait !'); return; }
       erreurs++;
       montrer();
+      retour.reponseMontree(conteneur, "La voilà !");
       attendre(nouvelle, 2600);
     }
 
     function nouvelle() {
       if (fini) return;
+      // Point de rupture : jamais au milieu d'une question.
+      if (minuterie.doitFinir()) { terminer(); return; }
       essais = 0;
       message.textContent = '';
 
@@ -190,16 +196,13 @@ export function creerActivite({
       if (q.forme === 'ordre') poserOrdre(q); else poserChoix(q);
     }
 
-    const debut = Date.now();
-    const battement = setInterval(() => {
-      if (fini) return;
-      if (Date.now() - debut >= DUREE) terminer();
-    }, 500);
+    // Échéance douce : on ne coupe pas une question en cours de réponse.
+    const minuterie = creerMinuterie({ duree: DUREE, terminer: () => terminer() });
 
     function terminer() {
       if (fini) return;
       fini = true;
-      clearInterval(battement);
+      minuterie.arreter();
       for (const id2 of minuteurs) clearTimeout(id2);
       minuteurs.clear();
       ctx.surFin({ reussites, erreurs });
@@ -209,7 +212,7 @@ export function creerActivite({
 
     return function demonter() {
       fini = true;
-      clearInterval(battement);
+      minuterie.arreter();
       for (const id2 of minuteurs) clearTimeout(id2);
       minuteurs.clear();
     };

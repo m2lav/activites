@@ -43,9 +43,10 @@ import * as lecture from './lecture.js';
 import * as tri from './tri.js';
 import * as noeuds from './noeuds.js';
 import * as culture from './culture.js';
+import * as morse from './morse.js';
 
 export const CATALOGUE = [
-  calculMental, lecture, suites, memoire, quantites, tri, noeuds, culture,
+  calculMental, lecture, suites, memoire, quantites, tri, noeuds, culture, morse,
   labyrinthe, etoiles
 ];
 

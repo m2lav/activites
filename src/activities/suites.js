@@ -13,6 +13,8 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'suites',
@@ -20,7 +22,8 @@ export const meta = {
   type: 'logique',
   categorie: 'effort',
   ages: [4, 12],
-  duree: 80
+  duree: 80,
+  consigne: 'Devine ce qui vient après.'
 };
 
 const FORMES = ['cercle', 'carre', 'triangle'];
@@ -232,6 +235,9 @@ export function monter(conteneur, exercice, ctx) {
 
   function nouvelle() {
     if (fini) return;
+    // Point de rupture : si le temps est écoulé, on conclut ICI, jamais au
+    // milieu d'un exercice commencé.
+    if (minuterie.doitFinir()) { terminer(); return; }
     q = question(niveauCourant());
     essais = 0;
     message.textContent = '';
@@ -263,6 +269,7 @@ export function monter(conteneur, exercice, ctx) {
       reussites++;
       audio.son('juste');
       anim.recompense(bouton);
+      retour.reussite(conteneur);
       message.textContent = '';
       attendre(nouvelle, 800);
       return;
@@ -273,10 +280,10 @@ export function monter(conteneur, exercice, ctx) {
     anim.nonNon(bouton);
 
     if (essais === 1) {
-      message.textContent = 'Regarde encore.';
+      retour.echec(conteneur, 'Regarde encore !');
     } else {
       erreurs++;
-      message.textContent = 'On regarde ensemble.';
+      retour.reponseMontree(conteneur, 'On regarde ensemble');
       // Autocorrection : la bonne réponse se signale d'elle-même.
       const bon = [...optionsEl.children][q.options.findIndex((o) => memeItem(o, q.solution))];
       if (bon) {
@@ -287,18 +294,17 @@ export function monter(conteneur, exercice, ctx) {
     }
   }
 
-  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
-  const DUREE = ctx.duree ?? meta.duree * 1000;
-  const debut = Date.now();
-  const battement = setInterval(() => {
-    if (fini) return;
-    if (Date.now() - debut >= DUREE) terminer();
-  }, 500);
+  // Échéance douce : le temps écoulé ne coupe rien, il lève un drapeau que
+  // l'activité consulte à ses points de rupture naturels.
+  const minuterie = creerMinuterie({
+    duree: ctx.duree ?? meta.duree * 1000,
+    terminer: () => terminer()
+  });
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites, erreurs });
@@ -308,7 +314,7 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
   };

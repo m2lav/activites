@@ -16,6 +16,8 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'labyrinthe',
@@ -23,7 +25,8 @@ export const meta = {
   type: 'labyrinthe',
   categorie: 'detente',
   ages: [3, 12],
-  duree: 70
+  duree: 70,
+  consigne: "Glisse ton doigt jusqu'au drapeau."
 };
 
 // Calé sur le brief : niveau 2 → 5×5, niveau 5 → 9×9, niveau 9 → 15×15.
@@ -277,8 +280,11 @@ export function monter(conteneur, exercice, ctx) {
     compteur.textContent = `${reussites} ✓`;
     audio.son('recompense');
     anim.recompense(pion);
+    retour.reussite(conteneur, 'Sortie trouvée !');
     attendre(() => {
       if (fini) return;
+      // Point de rupture : labyrinthe résolu. On ne coupe jamais avant.
+      if (minuterie.doitFinir()) { terminer(); return; }
       courant = generer(niveauCourant());   // niveau relu : la roue agit ici
       x = 0; y = 0;
       dessiner();
@@ -288,18 +294,17 @@ export function monter(conteneur, exercice, ctx) {
 
   /* -- Durée -- */
 
-  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
-  const DUREE = ctx.duree ?? meta.duree * 1000;
-  const debut = Date.now();
-  const battement = setInterval(() => {
-    if (fini) return;
-    if (Date.now() - debut >= DUREE) terminer();
-  }, 500);
+  // Échéance douce : le temps écoulé ne coupe rien, il lève un drapeau que
+  // l'activité consulte à ses points de rupture naturels.
+  const minuterie = creerMinuterie({
+    duree: ctx.duree ?? meta.duree * 1000,
+    terminer: () => terminer()
+  });
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites, erreurs: 0 });   // se perdre n'est pas une faute
@@ -320,7 +325,7 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     window.removeEventListener('resize', surRedimension);

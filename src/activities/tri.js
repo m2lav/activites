@@ -16,6 +16,8 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'tri',
@@ -23,7 +25,8 @@ export const meta = {
   type: 'logique',
   categorie: 'effort',
   ages: [3, 7],
-  duree: 70
+  duree: 70,
+  consigne: "Range du plus petit au plus grand."
 };
 
 const OBJETS = ['🍎', '🐞', '⭐', '🐟', '🌻', '🦕', '🚗', '🎈', '🐘', '🦋', '🍄', '⛵'];
@@ -91,23 +94,45 @@ export function monter(conteneur, exercice, ctx) {
 
     haut.replaceChildren();
     bas.replaceChildren(...tailles.map((t) => {
+      /*
+         L'objet choisi doit se VOIR. Baisser l'opacité ne suffit pas : à
+         quatre ans, on ne sait pas si on a touché ou raté. On entoure donc
+         l'objet d'un anneau vert et on affiche son rang — ce qui montre en
+         même temps l'ordre qu'on est en train de construire.
+      */
+      const pastille = el('span', {
+        style: {
+          position: 'absolute', top: '-6px', right: '-6px',
+          width: '26px', height: '26px', borderRadius: '50%',
+          background: 'var(--u-vert-ok)', color: '#fff',
+          display: 'none', placeItems: 'center',
+          fontFamily: 'var(--u-police-titre)', fontWeight: '800', fontSize: '15px'
+        }
+      }, '');
+
       const b = el('button', {
         type: 'button',
         'aria-label': `taille ${t}`,
         style: {
-          border: 'none', background: 'transparent', cursor: 'pointer',
-          padding: '6px', fontSize: `${t}px`, lineHeight: '1'
+          position: 'relative',
+          border: '4px solid transparent', borderRadius: '50%',
+          background: 'transparent', cursor: 'pointer',
+          padding: '8px', fontSize: `${t}px`, lineHeight: '1',
+          transition: 'border-color .18s ease, background-color .18s ease'
         }
-      }, objet);
+      }, objet, pastille);
 
       b.addEventListener('pointerdown', () => {
         if (fini || b.disabled) return;
         if (t === ordre[attendu]) {
           attendu++;
           b.disabled = true;
-          b.style.opacity = '.3';
+          b.style.borderColor = 'var(--u-vert-ok)';
+          b.style.background = 'color-mix(in srgb, var(--u-vert-ok) 18%, transparent)';
+          pastille.textContent = String(attendu);
+          pastille.style.display = 'grid';
+          anim.recompense(pastille);
           audio.son('touche');
-          anim.appui(b);
           if (attendu === ordre.length) gagne(bas);
         } else {
           erreurs++;
@@ -152,7 +177,7 @@ export function monter(conteneur, exercice, ctx) {
       b.addEventListener('pointerdown', () => {
         if (fini) return;
         if (o === bon) gagne(b);
-        else { erreurs++; audio.son('presque'); anim.nonNon(b); }
+        else { erreurs++; audio.son('presque'); anim.nonNon(b); retour.echec(conteneur, 'Pas celui-là !'); }
       });
       return b;
     }));
@@ -167,11 +192,15 @@ export function monter(conteneur, exercice, ctx) {
     reussites++;
     audio.son('recompense');
     anim.recompense(cible);
+    retour.reussite(conteneur);
     attendre(nouvelle, 1100);
   }
 
   function nouvelle() {
     if (fini) return;
+    // Point de rupture : si le temps est écoulé, on conclut ICI, jamais au
+    // milieu d'un exercice commencé.
+    if (minuterie.doitFinir()) { terminer(); return; }
     const n = niveauCourant();
     // En dessous du niveau 3, on reste sur le rangement par taille : la
     // silhouette demande une abstraction que les plus jeunes n'ont pas encore.
@@ -179,16 +208,14 @@ export function monter(conteneur, exercice, ctx) {
     else ombre(n);
   }
 
-  const debut = Date.now();
-  const battement = setInterval(() => {
-    if (fini) return;
-    if (Date.now() - debut >= DUREE) terminer();
-  }, 500);
+  // Échéance douce : le temps écoulé ne coupe rien, il lève un drapeau que
+  // l'activité consulte à ses points de rupture naturels.
+  const minuterie = creerMinuterie({ duree: DUREE, terminer: () => terminer() });
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites, erreurs });
@@ -198,7 +225,7 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
   };

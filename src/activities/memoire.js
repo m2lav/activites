@@ -12,6 +12,8 @@
 import { el } from '../ui/dom.js';
 import * as audio from '../core/audio.js';
 import * as anim from '../core/anim.js';
+import * as retour from '../ui/retour.js';
+import { creerMinuterie } from './minuterie.js';
 
 export const meta = {
   id: 'memoire',
@@ -19,7 +21,8 @@ export const meta = {
   type: 'memoire',
   categorie: 'effort',
   ages: [3, 12],
-  duree: 90
+  duree: 90,
+  consigne: "Retrouve les paires qui vont ensemble."
 };
 
 const PAIRES = [3, 4, 5, 6, 8, 9, 10, 11, 12, 12];
@@ -184,7 +187,7 @@ export function monter(conteneur, exercice, ctx) {
       for (const c of [a, b]) c.el.style.opacity = '.55';
       retournees = [];
       bloque = false;
-      if (trouvees === courant.nombre) rejouer();
+      if (trouvees === courant.nombre) { retour.reussite(conteneur, 'Tout trouvé !'); rejouer(); }
       return;
     }
 
@@ -203,6 +206,8 @@ export function monter(conteneur, exercice, ctx) {
     audio.son('recompense');
     attendre(() => {
       if (fini) return;
+      // Point de rupture : plateau terminé, on peut conclure proprement.
+      if (minuterie.doitFinir()) { terminer(); return; }
       courant = generer(niveauCourant());
       trouvees = 0;
       retournees = [];
@@ -213,18 +218,17 @@ export function monter(conteneur, exercice, ctx) {
     }, 1300);
   }
 
-  // La durée est fixée par la séance, pas par l'activité (mode test = raccourci).
-  const DUREE = ctx.duree ?? meta.duree * 1000;
-  const debut = Date.now();
-  const battement = setInterval(() => {
-    if (fini) return;
-    if (Date.now() - debut >= DUREE) terminer();
-  }, 500);
+  // Échéance douce : le temps écoulé ne coupe rien, il lève un drapeau que
+  // l'activité consulte à ses points de rupture naturels.
+  const minuterie = creerMinuterie({
+    duree: ctx.duree ?? meta.duree * 1000,
+    terminer: () => terminer()
+  });
 
   function terminer() {
     if (fini) return;
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     ctx.surFin({ reussites: totalTrouvees, erreurs });
@@ -246,7 +250,7 @@ export function monter(conteneur, exercice, ctx) {
 
   return function demonter() {
     fini = true;
-    clearInterval(battement);
+    minuterie.arreter();
     for (const id of minuteurs) clearTimeout(id);
     minuteurs.clear();
     window.removeEventListener('resize', surRedimension);
