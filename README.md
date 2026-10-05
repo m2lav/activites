@@ -91,13 +91,31 @@ modifier. Voir `etoiles.js` comme patron.
 | Ranger et associer | logique | effort | 3-7 | nombre d'éléments, taille puis silhouette |
 | Les nœuds marins | culture | effort | 7-12 | usages, puis étapes du nœud de chaise |
 | Repères d'histoire | culture | effort | 7-12 | repères simples → dates → chronologie |
+| Le morse | culture | effort | 7-12 | lettres courtes → alphabet complet → mots |
+| La case manquante | logique | effort | 5-12 | 2×2 → 3×3, puis variation des tailles |
+| Le sudoku des formes | logique | effort | 5-12 | 3 à 12 cases à retrouver |
+| La balance | logique | effort | 6-12 | un équilibre, puis deux à enchaîner |
+| Les deux paniers | logique | effort | 4-10 | règles perceptibles → catégorielles |
+| Le code secret | logique | effort | 7-12 | 3 à 5 cases, 3 à 6 couleurs, répétitions |
 | Le labyrinthe | labyrinthe | détente | 3-12 | 5×5 à 17×17, impasses à partir du niveau 3 |
+| Le tangram | logique | détente | 4-12 | 3 à 7 pièces sur 3×3 à 5×5 |
+| Les formes | logique | détente | 3-7 | 2 à 6 formes, de plus en plus semblables |
 | Les étoiles | adresse | détente | 3-12 | taille, durée de vie, cadence |
+
+Dix-huit activités. Térence en a 9, Olympe 14, Gaspard 15.
+
+### Glisser-déposer
+
+`ui/glisser.js` sert au tangram et à l'encastrement. Trois règles : la pièce
+suit le doigt sans décalage, elle revient en glissant si le dépôt est refusé
+(rien ne se perd), et l'aimantation est généreuse — c'est l'emplacement le
+plus proche qui gagne, dans un rayon proportionnel à sa taille.
 
 Les trois activités de connaissances partagent un moteur commun
 (`connaissances.js`) : ajouter un thème, c'est écrire une banque de questions.
 
-Reste à écrire : **tangram** et **encastrement de formes** (glisser-déposer
+Reste à écrire : **scoutisme** — dont les signes de piste attendent une
+validation. (Ancienne note sur le glisser-déposer
 géométrique, qui mérite sa propre passe) et **scoutisme** — dont les signes de
 piste attendent une validation, le brief demandant de les traiter avec justesse.
 

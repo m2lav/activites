@@ -44,10 +44,18 @@ import * as tri from './tri.js';
 import * as noeuds from './noeuds.js';
 import * as culture from './culture.js';
 import * as morse from './morse.js';
+import * as tangram from './tangram.js';
+import * as encastrement from './encastrement.js';
+import * as matrices from './matrices.js';
+import * as sudoku from './sudoku.js';
+import * as balance from './balance.js';
+import * as paniers from './paniers.js';
+import * as codeSecret from './code-secret.js';
 
 export const CATALOGUE = [
   calculMental, lecture, suites, memoire, quantites, tri, noeuds, culture, morse,
-  labyrinthe, etoiles
+  matrices, sudoku, balance, paniers, codeSecret,
+  labyrinthe, tangram, encastrement, etoiles
 ];
 
 /** Activités jouables par un enfant de cet âge. */
